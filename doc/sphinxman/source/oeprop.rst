@@ -3,23 +3,24 @@
 .. #
 .. # Psi4: an open-source quantum chemistry software package
 .. #
-.. # Copyright (c) 2007-2016 The Psi4 Developers.
+.. # Copyright (c) 2007-2019 The Psi4 Developers.
 .. #
 .. # The copyrights for code used from other parties are included in
 .. # the corresponding files.
 .. #
-.. # This program is free software; you can redistribute it and/or modify
-.. # it under the terms of the GNU General Public License as published by
-.. # the Free Software Foundation; either version 2 of the License, or
-.. # (at your option) any later version.
+.. # This file is part of Psi4.
 .. #
-.. # This program is distributed in the hope that it will be useful,
+.. # Psi4 is free software; you can redistribute it and/or modify
+.. # it under the terms of the GNU Lesser General Public License as published by
+.. # the Free Software Foundation, version 3.
+.. #
+.. # Psi4 is distributed in the hope that it will be useful,
 .. # but WITHOUT ANY WARRANTY; without even the implied warranty of
 .. # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-.. # GNU General Public License for more details.
+.. # GNU Lesser General Public License for more details.
 .. #
-.. # You should have received a copy of the GNU General Public License along
-.. # with this program; if not, write to the Free Software Foundation, Inc.,
+.. # You should have received a copy of the GNU Lesser General Public License along
+.. # with Psi4; if not, write to the Free Software Foundation, Inc.,
 .. # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 .. #
 .. # @END LICENSE
@@ -34,13 +35,13 @@
 
 .. _`sec:oeprop`:
 
-Evaluation of One-Electron Properties |w---w| :py:func:`~p4util.oeprop`
-=======================================================================
+Evaluation of One-Electron Properties |w---w| :py:func:`~psi4.oeprop`
+=====================================================================
 
 .. codeauthor:: Robert M. Parrish and Andrew C. Simmonett
 .. sectionauthor:: Andrew C. Simmonett
 
-.. autofunction:: p4util.oeprop(wfn, \*args[, title])
+.. autofunction:: psi4.oeprop(wfn, \*args[, title])
 
 |PSIfour| is capable of computing a number of one-electron properties
 summarized in the table below. 
@@ -68,9 +69,9 @@ summarized in the table below.
    +------------------------------------+-----------------------+-----------------------------------------------------------------------------------+
    | Mulliken atomic charges            | MULLIKEN_CHARGES      |                                                                                   |
    +------------------------------------+-----------------------+-----------------------------------------------------------------------------------+
-   | Löwdin atomic charges              | LOWDIN_CHARGES        |                                                                                   |
+   | L\ |o_dots|\ wdin atomic charges   | LOWDIN_CHARGES        |                                                                                   |
    +------------------------------------+-----------------------+-----------------------------------------------------------------------------------+
-   | Wiberg bond indices                | WIBERG_LOWDIN_INDICES | Uses (Löwdin) symmetrically orthogonalized orbitals                               |
+   | Wiberg bond indices                | WIBERG_LOWDIN_INDICES | Uses (L\ |o_dots|\ wdin) symmetrically orthogonalized orbitals                    |
    +------------------------------------+-----------------------+-----------------------------------------------------------------------------------+
    | Mayer bond indices                 | MAYER_INDICES         |                                                                                   |
    +------------------------------------+-----------------------+-----------------------------------------------------------------------------------+
@@ -100,8 +101,8 @@ computed using the built-in property() function, e.g.::
 
   property('ccsd', properties=['dipole'])
 
-The :py:func:`~driver.property` function provides limited functionality, but is a lot easier to
-use for correlated methods. For capabilities of :py:func:`~driver.property` see the
+The :py:func:`~psi4.property` function provides limited functionality, but is a lot easier to
+use for correlated methods. For capabilities of :py:func:`~psi4.property` see the
 corresponding section of the manual.
 
 
@@ -135,7 +136,7 @@ Properties evaluated on a grid
 
 Certain properties may be evaluated a user-specified grid points.  The grid
 points are completely arbitrary and are specified by providing a file called
-grid.dat containing the x,y,z values seperated with spaces for each point in order::
+grid.dat containing the x,y,z values separated with spaces for each point in order::
 
     x1 y1 z1
     x2 y2 z2

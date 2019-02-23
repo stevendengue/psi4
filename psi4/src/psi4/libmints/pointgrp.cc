@@ -3,23 +3,24 @@
  *
  * Psi4: an open-source quantum chemistry software package
  *
- * Copyright (c) 2007-2016 The Psi4 Developers.
+ * Copyright (c) 2007-2019 The Psi4 Developers.
  *
  * The copyrights for code used from other parties are included in
  * the corresponding files.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * This file is part of Psi4.
  *
- * This program is distributed in the hope that it will be useful,
+ * Psi4 is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * Psi4 is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with Psi4; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * @END LICENSE
@@ -79,17 +80,17 @@
 #include "psi4/psi4-dec.h"
 #include "psi4/libmints/pointgrp.h"
 #include "psi4/libpsi4util/libpsi4util.h"
-#include "psi4/libparallel/ParallelPrinter.h"
+#include "psi4/libpsi4util/PsiOutStream.h"
+#include "psi4/libpsi4util/exception.h"
 
 #include <cstdlib>
 #include <cstring>
-#include <ctype.h>
+#include <cctype>
 #include <cmath>
 
 namespace psi {
 namespace PointGroups {
-void similar(unsigned char bits, unsigned char *sim, char &cnt)
-{
+void similar(unsigned char bits, unsigned char *sim, char &cnt) {
     static unsigned char cs[3] = {CsX, CsY, CsZ};
     static unsigned char c2v[3] = {C2vZ, C2vY, C2vX};
     static unsigned char c2h[3] = {C2hZ, C2hY, C2hX};
@@ -144,72 +145,50 @@ void similar(unsigned char bits, unsigned char *sim, char &cnt)
             throw PSIEXCEPTION("Should not have reaced here.");
     }
 }
-}
+}  // namespace PointGroups
 
 ////////////////////////////////////////////////////////////////////////
 
-PointGroup::PointGroup()
-{
+PointGroup::PointGroup() {
     set_symbol("c1");
     origin_[0] = origin_[1] = origin_[2] = 0;
 }
 
-PointGroup::PointGroup(const std::string &s)
-{
-    if (full_name_to_bits(s, bits_) == false)
-        throw PSIEXCEPTION("PointGroup: Unknown point group name provided.");
+PointGroup::PointGroup(const std::string &s) {
+    if (full_name_to_bits(s, bits_) == false) throw PSIEXCEPTION("PointGroup: Unknown point group name provided.");
     set_symbol(bits_to_basic_name(bits_));
     origin_[0] = origin_[1] = origin_[2] = 0;
 }
 
-PointGroup::PointGroup(const std::string &s,
-                       const Vector3 &origin)
-{
-    if (full_name_to_bits(s, bits_) == false)
-        throw PSIEXCEPTION("PointGroup: Unknown point group name provided.");
+PointGroup::PointGroup(const std::string &s, const Vector3 &origin) {
+    if (full_name_to_bits(s, bits_) == false) throw PSIEXCEPTION("PointGroup: Unknown point group name provided.");
     set_symbol(bits_to_basic_name(bits_));
     origin_ = origin;
 }
 
-PointGroup::PointGroup(unsigned char bits)
-        : bits_(bits)
-{
+PointGroup::PointGroup(unsigned char bits) : bits_(bits) {
     set_symbol(bits_to_basic_name(bits));
     origin_[0] = origin_[1] = origin_[2] = 0;
 }
 
-PointGroup::PointGroup(unsigned char bits, const Vector3 &origin)
-        : bits_(bits)
-{
+PointGroup::PointGroup(unsigned char bits, const Vector3 &origin) : bits_(bits) {
     set_symbol(bits_to_basic_name(bits));
     origin_ = origin;
 }
 
-PointGroup::PointGroup(const PointGroup &pg)
-{
-    *this = pg;
-}
+PointGroup::PointGroup(const PointGroup &pg) { *this = pg; }
 
-PointGroup::PointGroup(const std::shared_ptr <PointGroup> &pg)
-{
-    *this = *pg.get();
-}
+PointGroup::PointGroup(const std::shared_ptr<PointGroup> &pg) { *this = *pg.get(); }
 
-PointGroup::~PointGroup()
-{
-}
+PointGroup::~PointGroup() {}
 
-PointGroup &
-PointGroup::operator=(const PointGroup &pg)
-{
+PointGroup &PointGroup::operator=(const PointGroup &pg) {
     set_symbol(pg.symb);
     origin_ = pg.origin_;
     return *this;
 }
 
-void
-PointGroup::set_symbol(const std::string &sym)
-{
+void PointGroup::set_symbol(const std::string &sym) {
     if (sym.length()) {
         symb = sym;
     } else {
@@ -217,24 +196,18 @@ PointGroup::set_symbol(const std::string &sym)
     }
 }
 
-CharacterTable
-PointGroup::char_table() const
-{
+CharacterTable PointGroup::char_table() const {
     CharacterTable ret(bits_);
     return ret;
 }
 
-int
-PointGroup::equiv(const std::shared_ptr <PointGroup> &grp, double /*tol*/) const
-{
-    if (symb != grp->symb)
-        return 0;
+int PointGroup::equiv(const std::shared_ptr<PointGroup> &grp, double /*tol*/) const {
+    if (symb != grp->symb) return 0;
 
     return 1;
 }
 
-bool PointGroup::full_name_to_bits(const std::string &pg, unsigned char &bits)
-{
+bool PointGroup::full_name_to_bits(const std::string &pg, unsigned char &bits) {
     bool retvalue = true;
 
     if (iequals(pg, std::string("C1")))
@@ -255,22 +228,28 @@ bool PointGroup::full_name_to_bits(const std::string &pg, unsigned char &bits)
         bits = PointGroups::CsZ;
     else if (iequals(pg, std::string("D2")))
         bits = PointGroups::D2;
-    else if (iequals(pg, std::string("C2v(X)")) || iequals(pg, std::string("C2vx")) || iequals(pg, std::string("C2v_x")))
+    else if (iequals(pg, std::string("C2v(X)")) || iequals(pg, std::string("C2vx")) ||
+             iequals(pg, std::string("C2v_x")))
         bits = PointGroups::C2vX;
-    else if (iequals(pg, std::string("C2v(Y)")) || iequals(pg, std::string("C2vy")) || iequals(pg, std::string("C2v_y")))
+    else if (iequals(pg, std::string("C2v(Y)")) || iequals(pg, std::string("C2vy")) ||
+             iequals(pg, std::string("C2v_y")))
         bits = PointGroups::C2vY;
-    else if (iequals(pg, std::string("C2v(Z)")) || iequals(pg, std::string("C2vz")) || iequals(pg, std::string("C2v_z")))
+    else if (iequals(pg, std::string("C2v(Z)")) || iequals(pg, std::string("C2vz")) ||
+             iequals(pg, std::string("C2v_z")))
         bits = PointGroups::C2vZ;
-    else if (iequals(pg, std::string("C2h(X)")) || iequals(pg, std::string("C2hx")) || iequals(pg, std::string("C2h_x")))
+    else if (iequals(pg, std::string("C2h(X)")) || iequals(pg, std::string("C2hx")) ||
+             iequals(pg, std::string("C2h_x")))
         bits = PointGroups::C2hX;
-    else if (iequals(pg, std::string("C2h(Y)")) || iequals(pg, std::string("C2hy")) || iequals(pg, std::string("C2h_y")))
+    else if (iequals(pg, std::string("C2h(Y)")) || iequals(pg, std::string("C2hy")) ||
+             iequals(pg, std::string("C2h_y")))
         bits = PointGroups::C2hY;
-    else if (iequals(pg, std::string("C2h(Z)")) || iequals(pg, std::string("C2hz")) || iequals(pg, std::string("C2h_z")))
+    else if (iequals(pg, std::string("C2h(Z)")) || iequals(pg, std::string("C2hz")) ||
+             iequals(pg, std::string("C2h_z")))
         bits = PointGroups::C2hZ;
     else if (iequals(pg, std::string("D2h")))
         bits = PointGroups::D2h;
 
-        // Ok, the user gave us Cs, C2v, C2h, C2, but no directionality
+    // Ok, the user gave us Cs, C2v, C2h, C2, but no directionality
     else if (iequals(pg, std::string("Cs")))
         bits = PointGroups::CsX;
     else if (iequals(pg, std::string("C2v")))
@@ -286,8 +265,7 @@ bool PointGroup::full_name_to_bits(const std::string &pg, unsigned char &bits)
     return retvalue;
 }
 
-const char *PointGroup::bits_to_full_name(unsigned char bits)
-{
+const char *PointGroup::bits_to_full_name(unsigned char bits) {
     switch (bits) {
         case PointGroups::C1:
             return "C1";
@@ -327,8 +305,7 @@ const char *PointGroup::bits_to_full_name(unsigned char bits)
     }
 }
 
-const char *PointGroup::bits_to_basic_name(unsigned char bits)
-{
+const char *PointGroup::bits_to_basic_name(unsigned char bits) {
     switch (bits) {
         case PointGroups::C1:
             return "c1";
@@ -360,15 +337,25 @@ const char *PointGroup::bits_to_basic_name(unsigned char bits)
     }
 }
 
-void
-PointGroup::print(std::string out) const
-{
-    std::shared_ptr <psi::PsiOutStream> printer = (out == "outfile" ? outfile :
-                                                   std::shared_ptr<OutFile>(new OutFile(out)));
+void PointGroup::print(std::string out) const {
+    std::shared_ptr<psi::PsiOutStream> printer = (out == "outfile" ? outfile : std::make_shared<PsiOutStream>(out));
     printer->Printf("PointGroup: %s\n", symb.c_str());
 }
 
+std::string PointGroup::irrep_bits_to_string(int irrep_bits) const {
+    std::string irrep_str;
+    const CharacterTable c_table = char_table();
+    for (int irrep = 0; irrep < c_table.nirrep(); ++irrep) {
+        if ((1 << irrep) & irrep_bits) {
+            if (!irrep_str.empty()) {
+                irrep_str += ", ";
+            }
+            irrep_str += c_table.gamma(irrep).symbol();
+        }
+    }
+    return irrep_str;
 }
+}  // namespace psi
 
 /////////////////////////////////////////////////////////////////////////////
 

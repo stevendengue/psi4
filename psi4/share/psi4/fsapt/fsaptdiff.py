@@ -5,23 +5,24 @@
 #
 # Psi4: an open-source quantum chemistry software package
 #
-# Copyright (c) 2007-2016 The Psi4 Developers.
+# Copyright (c) 2007-2019 The Psi4 Developers.
 #
 # The copyrights for code used from other parties are included in
 # the corresponding files.
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# This file is part of Psi4.
 #
-# This program is distributed in the hope that it will be useful,
+# Psi4 is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, version 3.
+#
+# Psi4 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# GNU Lesser General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, write to the Free Software Foundation, Inc.,
+# You should have received a copy of the GNU Lesser General Public License along
+# with Psi4; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 # @END LICENSE
@@ -57,62 +58,62 @@ if __name__ == '__main__':
 
     fh = open('%s/fsapt.dat' % dirA, 'w')
     fh, sys.stdout = sys.stdout, fh
-    print '  ==> F-ISAPT: Links by Charge <==\n'
+    print('  ==> F-ISAPT: Links by Charge <==\n')
     stuffA = computeFsapt(dirA, False)
-    print '   => Full Analysis <=\n'
+    print('   => Full Analysis <=\n')
     printOrder2(stuffA['order2'], stuffA['fragkeys']) 
-    print '   => Reduced Analysis <=\n'
+    print('   => Reduced Analysis <=\n')
     printOrder2(stuffA['order2r'], stuffA['fragkeysr']) 
     fh, sys.stdout = sys.stdout, fh
     fh.close()
 
     fh = open('%s/fsapt.dat' % dirB, 'w')
     fh, sys.stdout = sys.stdout, fh
-    print '  ==> F-ISAPT: Links by Charge <==\n'
+    print('  ==> F-ISAPT: Links by Charge <==\n')
     stuffB = computeFsapt(dirB, False)
-    print '   => Full Analysis <=\n'
+    print('   => Full Analysis <=\n')
     printOrder2(stuffB['order2'], stuffB['fragkeys']) 
-    print '   => Reduced Analysis <=\n'
+    print('   => Reduced Analysis <=\n')
     printOrder2(stuffB['order2r'], stuffB['fragkeysr']) 
     fh, sys.stdout = sys.stdout, fh
     fh.close()
 
     fh = open('%s/fsapt.dat' % dirD, 'w')
     fh, sys.stdout = sys.stdout, fh
-    print '  ==> F-ISAPT: Links by Charge <==\n'
+    print('  ==> F-ISAPT: Links by Charge <==\n')
     order2D = diffOrder2(stuffA['order2r'], stuffB['order2r'])
-    print '   => Reduced Analysis <=\n'
+    print('   => Reduced Analysis <=\n')
     printOrder2(order2D, stuffB['fragkeysr']) 
     fh, sys.stdout = sys.stdout, fh
     fh.close()
 
     fh = open('%s/fsapt.dat' % dirA, 'a')
     fh, sys.stdout = sys.stdout, fh
-    print '  ==> F-ISAPT: Links 50-50 <==\n'
+    print('  ==> F-ISAPT: Links 50-50 <==\n')
     stuffA = computeFsapt(dirA, True)
-    print '   => Full Analysis <=\n'
+    print('   => Full Analysis <=\n')
     printOrder2(stuffA['order2'], stuffA['fragkeys']) 
-    print '   => Reduced Analysis <=\n'
+    print('   => Reduced Analysis <=\n')
     printOrder2(stuffA['order2r'], stuffA['fragkeysr']) 
     fh, sys.stdout = sys.stdout, fh
     fh.close()
 
     fh = open('%s/fsapt.dat' % dirB, 'a')
     fh, sys.stdout = sys.stdout, fh
-    print '  ==> F-ISAPT: Links 50-50 <==\n'
+    print('  ==> F-ISAPT: Links 50-50 <==\n')
     stuffB = computeFsapt(dirB, True)
-    print '   => Full Analysis <=\n'
+    print('   => Full Analysis <=\n')
     printOrder2(stuffB['order2'], stuffB['fragkeys']) 
-    print '   => Reduced Analysis <=\n'
+    print('   => Reduced Analysis <=\n')
     printOrder2(stuffB['order2r'], stuffB['fragkeysr']) 
     fh, sys.stdout = sys.stdout, fh
     fh.close()
 
     fh = open('%s/fsapt.dat' % dirD, 'a')
     fh, sys.stdout = sys.stdout, fh
-    print '  ==> F-ISAPT: Links 50-50 <==\n'
+    print('  ==> F-ISAPT: Links 50-50 <==\n')
     order2D = diffOrder2(stuffA['order2r'], stuffB['order2r'])
-    print '   => Reduced Analysis <=\n'
+    print('   => Reduced Analysis <=\n')
     printOrder2(order2D, stuffB['fragkeysr']) 
     fh, sys.stdout = sys.stdout, fh
     fh.close()

@@ -3,23 +3,24 @@
 .. #
 .. # Psi4: an open-source quantum chemistry software package
 .. #
-.. # Copyright (c) 2007-2016 The Psi4 Developers.
+.. # Copyright (c) 2007-2019 The Psi4 Developers.
 .. #
 .. # The copyrights for code used from other parties are included in
 .. # the corresponding files.
 .. #
-.. # This program is free software; you can redistribute it and/or modify
-.. # it under the terms of the GNU General Public License as published by
-.. # the Free Software Foundation; either version 2 of the License, or
-.. # (at your option) any later version.
+.. # This file is part of Psi4.
 .. #
-.. # This program is distributed in the hope that it will be useful,
+.. # Psi4 is free software; you can redistribute it and/or modify
+.. # it under the terms of the GNU Lesser General Public License as published by
+.. # the Free Software Foundation, version 3.
+.. #
+.. # Psi4 is distributed in the hope that it will be useful,
 .. # but WITHOUT ANY WARRANTY; without even the implied warranty of
 .. # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-.. # GNU General Public License for more details.
+.. # GNU Lesser General Public License for more details.
 .. #
-.. # You should have received a copy of the GNU General Public License along
-.. # with this program; if not, write to the Free Software Foundation, Inc.,
+.. # You should have received a copy of the GNU Lesser General Public License along
+.. # with Psi4; if not, write to the Free Software Foundation, Inc.,
 .. # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 .. #
 .. # @END LICENSE
@@ -311,7 +312,7 @@ molecule's point group symmetry. ::
 
 The masses used by |PSIfour| can be found at
 :source:`psi4/include/psi4/masses.h`. See :srcsample:`freq-isotope` for about
-the only use to which isotopologs can presently be put in |PSIfour|.
+the only use to which isotopologues can presently be put in |PSIfour|.
 
 .. index:: 
    single: PubChem
@@ -397,7 +398,7 @@ symmetries, and will adjust the structure accordingly so that the maximum
 symmetry is utilized.
 
 The standard keywords, described in :ref:`sec:moleculeKeywords`, can be
-used in conjuction to specify charge, multiplicity, symmetry to use, *etc.* .
+used in conjunction to specify charge, multiplicity, symmetry to use, *etc.* .
 
 .. index:: symmetry, Cotton-ordering
 .. _`sec:symmetry`:
@@ -447,13 +448,13 @@ Although |PSIfour| will detect the symmetry automatically, and use the largest
 possible Abelian subgroup, the user might want to run in a lower point group.
 To do this the molecule keyword :samp:`symmetry {symbol}` can be used 
 (see :ref:`sec:moleculeKeywords`).  In most cases the standard
-Schönflies symbol (one of ``c1``, ``c2``, ``ci``, ``cs``, ``d2``,
+Sch\ |o_dots|\ nflies symbol (one of ``c1``, ``c2``, ``ci``, ``cs``, ``d2``,
 ``c2h``, ``c2v``, ``d2h`` will suffice for :samp:`{symbol}`.
 For certain computations, the user might want to specify which particular
 subgroup is to be used by appending a unique axis specifier.  For example when
 running a computation on a molecule with :math:`D_{2h}` symmetry in :math:`C_{2v}`, the
 :math:`C_2` axis can be chosen as either the :math:`x`, the :math:`y`, or the :math:`z`; these can
-be specified by requesing the symmetry as ``c2vx``, ``c2vy``, or ``c2vz``, respectively.
+be specified by requesting the symmetry as ``c2vx``, ``c2vy``, or ``c2vz``, respectively.
 Likewise the ``c2x``, ``c2y``, ``c2z``, ``c2hx``, ``c2hy``, and ``c2hz``
 labels are valid.  For :math:`C_s` symmetry the labels ``csx``, ``csy``, and
 ``csz`` request the :math:`yz`, :math:`xz`, and :math:`xy` planes be used as the mirror plane,
@@ -513,7 +514,7 @@ perturbation theory methods. These require the definition of which fragments
 are interacting within the complex. |PSIfour| provides a very simple mechanism
 for doing so: simply define the complex's geometry using the standard
 Cartesian, Z-matrix, or mixture thereof, specifications and then place two
-dashes between nonbonded fragements. For example, to study the interaction
+dashes between nonbonded fragments. For example, to study the interaction
 energy of ethane and ethyne molecules, we can use the following molecule
 block::
 
@@ -566,13 +567,13 @@ Advanced Python
 ===============
 
 A named molecule in an input file is a full-fledged instance of the
-powerful :ref:`C++ Molecule class <sec:psimod_Molecule>`. Thus, all member
+powerful C++ :py:class:`~psi4.core.Molecule` class. Thus, all member
 functions (that have been exported via pybind11) documented thereat
 are accessible through the handle :samp:`{option_molecule_name}` in
 :samp:`molecule {optional_molecule_name} \\{...\\}`.
 
 *  The molecular geometry can be got and set and manipulated as a
-   :ref:`psi4.Matrix <sec:psimod_Matrix>` object. Below shows how to access
+   :py:class:`~psi4.core.Matrix` object. Below shows how to access
    coordinates in an input file in Python. ::
 
        molecule formaldehyde {
@@ -605,7 +606,7 @@ are accessible through the handle :samp:`{option_molecule_name}` in
        formaldehyde.print_out()                # print new molecule to output file
        compare_values(28.9950517332, formaldehyde.nuclear_repulsion_energy(), 4, "geom2 took")
 
-* Molecules can be initited from XYZ files and fragmented for SAPT computations. ::
+* Molecules can be initiated from XYZ files and fragmented for SAPT computations. ::
 
        # >>> cat mol1.xyz
        #7

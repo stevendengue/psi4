@@ -3,23 +3,24 @@
 .. #
 .. # Psi4: an open-source quantum chemistry software package
 .. #
-.. # Copyright (c) 2007-2016 The Psi4 Developers.
+.. # Copyright (c) 2007-2019 The Psi4 Developers.
 .. #
 .. # The copyrights for code used from other parties are included in
 .. # the corresponding files.
 .. #
-.. # This program is free software; you can redistribute it and/or modify
-.. # it under the terms of the GNU General Public License as published by
-.. # the Free Software Foundation; either version 2 of the License, or
-.. # (at your option) any later version.
+.. # This file is part of Psi4.
 .. #
-.. # This program is distributed in the hope that it will be useful,
+.. # Psi4 is free software; you can redistribute it and/or modify
+.. # it under the terms of the GNU Lesser General Public License as published by
+.. # the Free Software Foundation, version 3.
+.. #
+.. # Psi4 is distributed in the hope that it will be useful,
 .. # but WITHOUT ANY WARRANTY; without even the implied warranty of
 .. # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-.. # GNU General Public License for more details.
+.. # GNU Lesser General Public License for more details.
 .. #
-.. # You should have received a copy of the GNU General Public License along
-.. # with this program; if not, write to the Free Software Foundation, Inc.,
+.. # You should have received a copy of the GNU Lesser General Public License along
+.. # with Psi4; if not, write to the Free Software Foundation, Inc.,
 .. # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 .. #
 .. # @END LICENSE
@@ -160,7 +161,7 @@ In order to preserve effective definition [a], the strategy for each
 python driver function is to query for the value of any option the
 function may want to change and for the current has_changed status
 (presumably reflecting whether the user has changed the value, as long as
-no preceeding code has corrupted that definition). The python function
+no preceding code has corrupted that definition). The python function
 then makes its changes to the option and runs any c-side modules with
 those changes. Finally, just before the function returns, the options are
 reset to the user's value and has_changed status (which should now again
@@ -197,25 +198,25 @@ Options from the c-side Options object are accessible in the Python driver throu
 
 - get 
 
-  - :py:func:`~psi4.get_global_option()`
-  - :py:func:`~psi4.get_local_option()`
-  - :py:func:`~psi4.get_option()`
+  - :py:func:`~psi4.core.get_global_option()`
+  - :py:func:`~psi4.core.get_local_option()`
+  - :py:func:`~psi4.core.get_option()`
 
 - set 
 
-  - :py:func:`~psi4.set_global_option()` 
-  - :py:func:`~psi4.set_local_option()`
+  - :py:func:`~psi4.core.set_global_option()`
+  - :py:func:`~psi4.core.set_local_option()`
 
 - has_changed 
 
-  - :py:func:`~psi4.has_global_option_changed()`
-  - :py:func:`~psi4.has_local_option_changed()`
-  - :py:func:`~psi4.has_option_changed()`
+  - :py:func:`~psi4.core.has_global_option_changed()`
+  - :py:func:`~psi4.core.has_local_option_changed()`
+  - :py:func:`~psi4.core.has_option_changed()`
 
 - revoke_changed 
 
-  - :py:func:`~psi4.revoke_global_option_changed()`
-  - :py:func:`~psi4.revoke_local_option_changed()`
+  - :py:func:`~psi4.core.revoke_global_option_changed()`
+  - :py:func:`~psi4.core.revoke_local_option_changed()`
 
 There's a pattern here. Setting something, either a value (set) or a
 negative changed status (revoke_changed), can only be done for a specific

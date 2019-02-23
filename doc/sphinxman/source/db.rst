@@ -3,23 +3,24 @@
 .. #
 .. # Psi4: an open-source quantum chemistry software package
 .. #
-.. # Copyright (c) 2007-2016 The Psi4 Developers.
+.. # Copyright (c) 2007-2019 The Psi4 Developers.
 .. #
 .. # The copyrights for code used from other parties are included in
 .. # the corresponding files.
 .. #
-.. # This program is free software; you can redistribute it and/or modify
-.. # it under the terms of the GNU General Public License as published by
-.. # the Free Software Foundation; either version 2 of the License, or
-.. # (at your option) any later version.
+.. # This file is part of Psi4.
 .. #
-.. # This program is distributed in the hope that it will be useful,
+.. # Psi4 is free software; you can redistribute it and/or modify
+.. # it under the terms of the GNU Lesser General Public License as published by
+.. # the Free Software Foundation, version 3.
+.. #
+.. # Psi4 is distributed in the hope that it will be useful,
 .. # but WITHOUT ANY WARRANTY; without even the implied warranty of
 .. # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-.. # GNU General Public License for more details.
+.. # GNU Lesser General Public License for more details.
 .. #
-.. # You should have received a copy of the GNU General Public License along
-.. # with this program; if not, write to the Free Software Foundation, Inc.,
+.. # You should have received a copy of the GNU Lesser General Public License along
+.. # with Psi4; if not, write to the Free Software Foundation, Inc.,
 .. # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 .. #
 .. # @END LICENSE
@@ -34,13 +35,13 @@
 
 .. _`sec:db()`:
 
-Database |w---w| :py:func:`~wrapper_database.database`
-======================================================
+Database |w---w| :py:func:`~psi4.driver.wrapper_database.database`
+==================================================================
 
 .. codeauthor:: Lori A. Burns
 .. sectionauthor:: Lori A. Burns
 
-.. autofunction:: wrapper_database.database(name, db_name [, func, mode, cp, rlxd, symm, zpe, benchmark, tabulate, subset])
+.. autofunction:: psi4.driver.wrapper_database.database(name, db_name [, func, mode, cp, rlxd, symm, zpe, benchmark, tabulate, subset])
 
 .. index:: 
    pair: database(); output
@@ -61,9 +62,9 @@ to compute only once the monomer whose energy will be subtracted from each of th
 
 At the end of the job, the Requested Energy table is printed that gives the total
 energies for the requested model chemistry for each reagent and each reaction, as
-well as the stoichoimetric weights by which the reagent energies are transfromed
+well as the stoichiometric weights by which the reagent energies are transformed
 into the reaction energy. In this case, the dimer is +1 and the monomer is -2,
-indicating the the interaction energy is computed from dimer less first monomer
+indicating the interaction energy is computed from dimer less first monomer
 less second (identical) monomer. Error statistics are computed with respect to the reference
 energies stored in the database. One of these, the mean absolute deviation, is 
 returned by the wrapper as an ordinary Python variable. (For databases
@@ -162,7 +163,7 @@ The output to the screen is as follows. ::
 Available Databases
 ^^^^^^^^^^^^^^^^^^^
 
-Below are documented for particular databases the availibility of the generic
+Below are documented for particular databases the availability of the generic
 database function options **cp**, **rlxd**, **benchmark**, and the string
 options for **subset**. The full reagent member list, which can also be used
 in conjunction with **subset**, is not included here for consideration of space

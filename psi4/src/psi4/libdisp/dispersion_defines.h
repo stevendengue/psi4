@@ -3,23 +3,24 @@
  *
  * Psi4: an open-source quantum chemistry software package
  *
- * Copyright (c) 2007-2016 The Psi4 Developers.
+ * Copyright (c) 2007-2019 The Psi4 Developers.
  *
  * The copyrights for code used from other parties are included in
  * the corresponding files.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * This file is part of Psi4.
  *
- * This program is distributed in the hope that it will be useful,
+ * Psi4 is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * Psi4 is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with Psi4; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * @END LICENSE
@@ -34,10 +35,10 @@
 
 // Atom Order: Gh, H, He, ...
 // For -DAS2010, last 6 values for C6, C8, and Beta are for hydrogen pairs
-// ***Depends on closest covelently-bonded atom to hydrogen 
+// ***Depends on closest covelently-bonded atom to hydrogen
 
-
-namespace psi { 
+namespace psi {
+// clang-format off
 const double RvdW_D1_[] = 
 {
     2.30546570658000,
@@ -154,6 +155,17 @@ const double C6_D1_[] =
     0.0000000000000000E+00,
     0.0000000000000000E+00
 };
+
+// equivalent array from DFTD3
+// RvdW_D2_ = r0 * 1.1 / bohr2ang
+//
+// 3009 c the published radii in S.Grimme, J.Comput.Chem. 27, (2006), 1787-1799 (tab 1)
+// 3010 c refer to the following values multiplied by 1.1 (rs6 in this code)
+// 3011 c H, He
+// 3012          r0(1:86) = (/ 0.91d0,0.92d0,
+// 3013 c Li-Ne
+// 3014      .      0.75d0,1.28d0,1.35d0,1.32d0,1.27d0,1.22d0,1.17d0,1.13d0,
+
 const double RvdW_D2_[] = 
 {
     2.07869858790000,
@@ -5259,6 +5271,6 @@ double R_0_AB_[] = {
     8.1758994914085000,
     8.3792340078249000
 };
-
+// clang-format on
 }
 #endif

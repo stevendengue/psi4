@@ -2,8 +2,6 @@
 #!   PSI variables are set and computed correctly.
 #!   Now also testing that CSX harvesting PSI variables correctly
 
-memory 200 mb
-
 molecule meth {
 0 1
 C
@@ -39,7 +37,6 @@ clean()
 
 energy('b2plyp')
 clean()
-
 
 energy('b2plyp-d')
 

@@ -3,23 +3,24 @@
  *
  * Psi4: an open-source quantum chemistry software package
  *
- * Copyright (c) 2007-2016 The Psi4 Developers.
+ * Copyright (c) 2007-2019 The Psi4 Developers.
  *
  * The copyrights for code used from other parties are included in
  * the corresponding files.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * This file is part of Psi4.
  *
- * This program is distributed in the hope that it will be useful,
+ * Psi4 is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * Psi4 is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with Psi4; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * @END LICENSE
@@ -34,13 +35,13 @@
 #include <fstream>
 #include <iostream>
 #include "globals.h"
+#include "psi4/liboptions/liboptions.h"
 #include "molecule.h"
 #include "print.h"
 #include "io.h"
 
 #if defined(OPTKING_PACKAGE_PSI)
   #include "psi4/libpsi4util/exception.h"
-  #include "psi4/libparallel/parallel.h"
 #endif
 
 // Define the return types for optking.
@@ -57,7 +58,7 @@
 #endif
 
 #if defined(OPTKING_PACKAGE_PSI)
-namespace psi { void psiclean(void); }
+namespace psi { void psiclean(); }
 #endif
 
 #if defined(OPTKING_PACKAGE_QCHEM)
@@ -69,11 +70,11 @@ namespace psi { void psiclean(void); }
 #endif
 
 namespace opt {
-  void open_output_dat(void); // open/link outfile to text output
-  void close_output_dat(void);// close above
-  void print_title_out(void); // print header
-  void print_end_out(void);   // print footer
-  void init_ioff(void);
+  void open_output_dat(); // open/link outfile to text output
+  void close_output_dat();// close above
+  void print_title_out(); // print header
+  void print_end_out();   // print footer
+  void init_ioff();
   int INTCO_EXCEPT::dynamic_level = 0;          // initialized only once
   std::vector<int> INTCO_EXCEPT::linear_angles; // static class members must be defined
   //bool INTCO_EXCEPT::already_tried_other_intcos = false;
@@ -91,7 +92,6 @@ OptReturnType optking(psi::Options & options) {
 OptReturnType optking(void) {
 #endif
 
-  using namespace std;
   using namespace opt;
 
   open_output_dat();   // assign output.dat file pointer
@@ -113,7 +113,7 @@ OptReturnType optking(void) {
   //  Opt_params.fragment_mode = OPT_PARAMS::SINGLE;
 
   // try to open old internal coordinates
-  std::ifstream if_intco(FILENAME_INTCO_DAT, ios_base::in);
+  std::ifstream if_intco(FILENAME_INTCO_DAT, std::ios_base::in);
 
   if (if_intco.is_open()) { // old internal coordinates are present
 
@@ -215,7 +215,7 @@ OptReturnType optking(void) {
       mol1->add_cartesians(); // also adds trivial combos
 
     // print out internal coordinates for future steps
-    FILE *qc_intco = NULL;
+    FILE *qc_intco = nullptr;
     std::string psi_intco = FILENAME_INTCO_DAT;
 #if defined(OPTKING_PACKAGE_QCHEM)
     qc_intco = fopen(FILENAME_INTCO_DAT, "w");
@@ -269,7 +269,7 @@ OptReturnType optking(void) {
   // save geometry and energy
   double * x = mol1->g_geom_array();
   p_Opt_data->save_geom_energy(x, mol1->g_energy());
-  if (x!=NULL) free_array(x);
+  if (x!=nullptr) free_array(x);
 
   // print out report on progress
   p_Opt_data->previous_step_report();
@@ -554,7 +554,7 @@ OptReturnType optking(void) {
 
       delete p_Opt_data;
       opt_intco_dat_remove(); // rm intco definitions
-      opt_io_remove();        // rm optimization data
+      opt_io_remove(true);        // rm optimization data
 
       //if (Opt_params.fragment_mode == OPT_PARAMS::MULTI)
       //  exc.override_fragment_mode = true;
@@ -585,7 +585,7 @@ OptReturnType optking(void) {
 
 // Standard text output file string (psi) or file pointer (qchem)
 // Interpreted by functions in print.cc
-void open_output_dat(void) {
+void open_output_dat() {
 #if defined (OPTKING_PACKAGE_PSI)
   psi_outfile = "outfile";
 #elif defined (OPTKING_PACKAGE_QCHEM)
@@ -593,13 +593,13 @@ void open_output_dat(void) {
 #endif
 }
 
-void close_output_dat(void) {
+void close_output_dat() {
 #if defined(OPTKING_PACKAGE_QCHEM)
 
 #endif
 }
 
-void print_title_out(void) {
+void print_title_out() {
   oprintf_out( "\n\t\t\t-----------------------------------------\n");
   oprintf_out(   "\t\t\t OPTKING 2.0: for geometry optimizations \n");
   oprintf_out(   "\t\t\t  - R.A. King,  Bethel University        \n");
@@ -607,7 +607,7 @@ void print_title_out(void) {
 
 }
 
-void print_end_out(void) {
+void print_end_out() {
 #if defined (OPTKING_PACKAGE_PSI)
   oprintf_out( "\t\t\t--------------------------\n");
   oprintf_out( "\t\t\t OPTKING Finished Execution \n");
@@ -615,7 +615,7 @@ void print_end_out(void) {
 #endif
 }
 
-void init_ioff(void)
+void init_ioff()
 {
   int i;
   ioff = init_int_array(IOFF_MAX);

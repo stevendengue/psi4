@@ -3,23 +3,24 @@
  *
  * Psi4: an open-source quantum chemistry software package
  *
- * Copyright (c) 2007-2016 The Psi4 Developers.
+ * Copyright (c) 2007-2019 The Psi4 Developers.
  *
  * The copyrights for code used from other parties are included in
  * the corresponding files.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * This file is part of Psi4.
  *
- * This program is distributed in the hope that it will be useful,
+ * Psi4 is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * Psi4 is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with Psi4; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * @END LICENSE
@@ -28,18 +29,20 @@
 #ifndef MULTIPOLESYMMETRY_H
 #define MULTIPOLESYMMETRY_H
 
+#include "psi4/libmints/typedefs.h"
+#include "psi4/pragma.h"
+
 #include <vector>
 #include <string>
 #include <map>
 
-namespace psi{
+namespace psi {
 
 class Molecule;
 class IntegralFactory;
 class MatrixFactory;
 
-class OperatorSymmetry
-{
+class PSI_API OperatorSymmetry {
     // The order of the multipole (dipole=1, quadrupole=2, etc...)
     int order_;
 
@@ -65,7 +68,7 @@ class OperatorSymmetry
 
     void common_init();
 
-public:
+   public:
     enum Operator {
         Dipole = 1,
         Quadrupole = 2,
@@ -88,11 +91,9 @@ public:
      * @param mats Matrix factory. Used by create_matrices to create matrices of the
      *             proper size and symmetry.
      */
-    OperatorSymmetry(int order,
-                     std::shared_ptr<Molecule> mol,
-                     std::shared_ptr<IntegralFactory> ints,
+    OperatorSymmetry(int order, std::shared_ptr<Molecule> mol, std::shared_ptr<IntegralFactory> ints,
                      std::shared_ptr<MatrixFactory> mats);
-    //OperatorSymmetry(int order,
+    // OperatorSymmetry(int order,
     //                 std::shared_ptr<Molecule> mol,
     //                 std::shared_ptr<IntegralFactory> ints);
     virtual ~OperatorSymmetry();
@@ -100,11 +101,10 @@ public:
     std::string name_of_component(int i);
     int component_symmetry(int i) const { return component_symmetry_[i]; }
 
-    std::vector<SharedMatrix > create_matrices(const std::string& basename);
+    std::vector<SharedMatrix> create_matrices(const std::string& basename);
 };
 
-class MultipoleSymmetry
-{
+class PSI_API MultipoleSymmetry {
     // The order of the multipole (dipole=1, quadrupole=2, etc...)
     int order_;
 
@@ -122,12 +122,11 @@ class MultipoleSymmetry
     /**
      * A 3D map to hold the addresses of each {lx, ly, lz} combination
      */
-    std::map< int, std::map< int, std::map< int, int > > > addresses_;
+    std::map<int, std::map<int, std::map<int, int> > > addresses_;
 
     void common_init();
 
-public:
-
+   public:
     /** Constructor
      * Constructs an object that determines the symmetry of the different
      * components of all multipoles up to (and including) L=order.  For all componenets of a given order
@@ -140,23 +139,21 @@ public:
      * @param mats Matrix factory. Used by create_matrices to create matrices of the
      *             proper size and symmetry.
      */
-    MultipoleSymmetry(int order,
-                     std::shared_ptr<Molecule> mol,
-                     std::shared_ptr<IntegralFactory> ints,
-                     std::shared_ptr<MatrixFactory> mats);
-    //MultipoleSymmetry(int order,
+    MultipoleSymmetry(int order, std::shared_ptr<Molecule> mol, std::shared_ptr<IntegralFactory> ints,
+                      std::shared_ptr<MatrixFactory> mats);
+    // MultipoleSymmetry(int order,
     //                 std::shared_ptr<Molecule> mol,
     //                 std::shared_ptr<IntegralFactory> ints);
     virtual ~MultipoleSymmetry();
 
     /**
-    * Returns the address in the array of the {lx, ly, lz} moment.
-    */
+     * Returns the address in the array of the {lx, ly, lz} moment.
+     */
     int address_of_component(int lx, int ly, int lz);
     int component_symmetry(int i) const { return component_symmetry_[i]; }
 
-    std::vector<SharedMatrix > create_matrices(const std::string& basename, bool ignore_symmetry=false);
+    std::vector<SharedMatrix> create_matrices(const std::string& basename, bool ignore_symmetry = false);
 };
-}
+}  // namespace psi
 
-#endif // MULTIPOLESYMMETRY_H
+#endif  // MULTIPOLESYMMETRY_H

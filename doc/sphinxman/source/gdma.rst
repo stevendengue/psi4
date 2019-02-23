@@ -3,23 +3,24 @@
 .. #
 .. # Psi4: an open-source quantum chemistry software package
 .. #
-.. # Copyright (c) 2007-2016 The Psi4 Developers.
+.. # Copyright (c) 2007-2019 The Psi4 Developers.
 .. #
 .. # The copyrights for code used from other parties are included in
 .. # the corresponding files.
 .. #
-.. # This program is free software; you can redistribute it and/or modify
-.. # it under the terms of the GNU General Public License as published by
-.. # the Free Software Foundation; either version 2 of the License, or
-.. # (at your option) any later version.
+.. # This file is part of Psi4.
 .. #
-.. # This program is distributed in the hope that it will be useful,
+.. # Psi4 is free software; you can redistribute it and/or modify
+.. # it under the terms of the GNU Lesser General Public License as published by
+.. # the Free Software Foundation, version 3.
+.. #
+.. # Psi4 is distributed in the hope that it will be useful,
 .. # but WITHOUT ANY WARRANTY; without even the implied warranty of
 .. # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-.. # GNU General Public License for more details.
+.. # GNU Lesser General Public License for more details.
 .. #
-.. # You should have received a copy of the GNU General Public License along
-.. # with this program; if not, write to the Free Software Foundation, Inc.,
+.. # You should have received a copy of the GNU Lesser General Public License along
+.. # with Psi4; if not, write to the Free Software Foundation, Inc.,
 .. # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 .. #
 .. # @END LICENSE
@@ -34,8 +35,8 @@
 
 .. _`sec:gdma`:
 
-Interface to GDMA Distributed Multipole Analysis by A. J. Stone |w---w| :py:func:`~driver.gdma`
-===============================================================================================
+Interface to GDMA Distributed Multipole Analysis by A. J. Stone |w---w| :py:func:`~psi4.gdma`
+=============================================================================================
 
 .. codeauthor:: Anthony J. Stone, Andrew C. Simmonett
 .. sectionauthor:: Andrew C. Simmonett
@@ -60,16 +61,19 @@ Installation
 * .. image:: https://anaconda.org/psi4/gdma/badges/version.svg
      :target: https://anaconda.org/psi4/gdma
 
-* GDMA is available as a conda package for Linux and macOS.
+* GDMA is available as a conda package for Linux and macOS (and Windows, through the Ubuntu shell).
 
 * If using the |PSIfour| binary, gdma has already been installed alongside.
 
 * If using |PSIfour| built from source, and anaconda or miniconda has
   already been installed (instructions at :ref:`sec:quickconda`),
-  gdma can be obtained through ``conda install gdma``.
+  gdma can be obtained through ``conda install gdma -c psi4``.
   Then enable it as a feature with :makevar:`ENABLE_gdma`,
   hint its location with :makevar:`CMAKE_PREFIX_PATH`,
   and rebuild |PSIfour| to detect gdma and activate dependent code.
+
+* Previous bullet had details. To build |PSIfour| from source and use
+  gdma from conda without thinking, consult :ref:`sec:condapsi4dev`.
 
 * To remove a conda installation, ``conda remove gdma``.
 
@@ -101,7 +105,7 @@ If more advanced usage is desired, which is not is permitted by the options
 listed below, the user may provide their own data file containing keywords to
 control the GDMA code.  Simply place the data file in the directory |PSIfour|
 is called from, and provide the file name as the datafile argument to the
-:py:func:`~driver.gdma` routine.  For example, if GDMA data file is called
+:py:func:`~psi4.gdma` routine.  For example, if GDMA data file is called
 *control.dma*, the GDMA code is called as follows::
 
     grad, wfn = gradient('mp2', return_wfn=True)
@@ -128,7 +132,7 @@ Q^2_{2s}, \ldots`  The second matrix returned has a single row, whose columns
 are the total multipoles, translated to |gdma__gdma_origin|, and summed.
 
 
-.. autofunction:: driver.gdma(wfn)
+.. autofunction:: psi4.gdma(wfn)
 
 Options
 ~~~~~~~
@@ -138,3 +142,56 @@ Options
 .. include:: autodir_options_c/gdma__gdma_multipole_units.rst
 .. include:: autodir_options_c/gdma__gdma_radius.rst
 .. include:: autodir_options_c/gdma__gdma_switch.rst
+
+.. _`cmake:gdma`:
+
+How to configure gdma for building Psi4
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Role and Dependencies**
+
+* Role |w---w| In |PSIfour|, GDMA is a library that provides additional
+  quantum chemical capabilities (multipole analysis).
+
+* Downstream Dependencies |w---w| |PSIfour| (\ |dr| optional) gdma
+
+* Upstream Dependencies |w---w| gdma |dr| Fortran
+
+**CMake Variables**
+
+* :makevar:`ENABLE_gdma` |w---w| CMake variable toggling whether Psi4 builds with gdma
+* :makevar:`CMAKE_PREFIX_PATH` |w---w| CMake list variable to specify where pre-built dependencies can be found. For gdma, set to an installation directory containing ``include/GDMA/GDMA_MANGLE.h``
+* :makevar:`gdma_DIR` |w---w| CMake variable to specify where pre-built gdma can be found. Set to installation directory containing ``share/cmake/gdma/gdmaConfig.cmake``
+* :makevar:`CMAKE_DISABLE_FIND_PACKAGE_gdma` |w---w| CMake variable to force internal build of gdma instead of detecting pre-built
+* :makevar:`CMAKE_INSIST_FIND_PACKAGE_gdma` |w---w| CMake variable to force detecting pre-built gdma and not falling back on internal build
+
+**Examples**
+
+A. Build bundled
+
+  .. code-block:: bash
+
+    >>> cmake -DENABLE_gdma=ON
+
+B. Build *without* gdma
+
+  .. code-block:: bash
+
+    >>> cmake
+
+C. Link against pre-built
+
+  .. code-block:: bash
+
+    >>> cmake -DENABLE_gdma=ON -DCMAKE_PREFIX_PATH=/path/to/gdma/root
+
+  .. code-block:: bash
+
+    >>> cmake -DENABLE_gdma=ON -Dgdma_DIR=/path/to/gdma/configdir
+
+D. Build bundled despite pre-built being detectable
+
+  .. code-block:: bash
+
+    >>> cmake -DENABLE_gdma=ON -DCMAKE_PREFIX_PATH=/path/to/unwanted/gdma/root/and/wanted/other/dependencies/root -DCMAKE_DISABLE_FIND_PACKAGE_gdma=ON
+

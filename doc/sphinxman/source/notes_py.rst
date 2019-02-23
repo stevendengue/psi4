@@ -3,23 +3,24 @@
 .. #
 .. # Psi4: an open-source quantum chemistry software package
 .. #
-.. # Copyright (c) 2007-2016 The Psi4 Developers.
+.. # Copyright (c) 2007-2019 The Psi4 Developers.
 .. #
 .. # The copyrights for code used from other parties are included in
 .. # the corresponding files.
 .. #
-.. # This program is free software; you can redistribute it and/or modify
-.. # it under the terms of the GNU General Public License as published by
-.. # the Free Software Foundation; either version 2 of the License, or
-.. # (at your option) any later version.
+.. # This file is part of Psi4.
 .. #
-.. # This program is distributed in the hope that it will be useful,
+.. # Psi4 is free software; you can redistribute it and/or modify
+.. # it under the terms of the GNU Lesser General Public License as published by
+.. # the Free Software Foundation, version 3.
+.. #
+.. # Psi4 is distributed in the hope that it will be useful,
 .. # but WITHOUT ANY WARRANTY; without even the implied warranty of
 .. # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-.. # GNU General Public License for more details.
+.. # GNU Lesser General Public License for more details.
 .. #
-.. # You should have received a copy of the GNU General Public License along
-.. # with this program; if not, write to the Free Software Foundation, Inc.,
+.. # You should have received a copy of the GNU Lesser General Public License along
+.. # with Psi4; if not, write to the Free Software Foundation, Inc.,
 .. # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 .. #
 .. # @END LICENSE
@@ -52,12 +53,12 @@ Notes on Options
 
 .. _`op_py_dertype`:
 
-.. note:: The derivative level type for :py:func:`~driver.optimize` and :py:func:`~driver.frequency` functions can be specified by ``energy``, ``none``, or ``0`` for 0th derivative, ``gradient``, ``first``, or ``1`` for 1st derivative, and ``hessian``, ``second``, or ``2`` for 2nd derivative. For finite difference, as opposed to analytic, derivatives, the :term:`POINTS <POINTS (FINDIF)>` option can be increased to ``5`` for greater accuracy at increased cost.
+.. note:: The derivative level type for :py:func:`~psi4.optimize` and :py:func:`~psi4.frequency` functions can be specified by ``energy``, ``none``, or ``0`` for 0th derivative, ``gradient``, ``first``, or ``1`` for 1st derivative, and ``hessian``, ``second``, or ``2`` for 2nd derivative. For finite difference, as opposed to analytic, derivatives, the :term:`POINTS <POINTS (FINDIF)>` option can be increased to ``5`` for greater accuracy at increased cost.
 
 .. _`op_py_function`:
 
 .. note:: Function option for the Psithon function called by the current function;
-   the default is usually :py:func:`~driver.energy`. See Sec. :ref:`sec:intercalls`
+   the default is usually :py:func:`~psi4.energy`. See Sec. :ref:`sec:intercalls`
    for a fuller description. Note that the value of the keyword is a Python object
    and so is not wrapped in quotes like a string.
 
@@ -68,5 +69,5 @@ Notes on Options
    ``molecule mymol {...}`` block or in an ``activate(mymol)`` statement. Note
    that the value of this keyword (``mymol`` in the example) is a Python object
    and so is not wrapped in quotes like a string. Technically, this is a
-   :ref:`Molecule<sec:psimod_Molecule>` object.
+   :py:class:`~psi4.core.Molecule` object.
 

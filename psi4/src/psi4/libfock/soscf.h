@@ -3,28 +3,28 @@
  *
  * Psi4: an open-source quantum chemistry software package
  *
- * Copyright (c) 2007-2016 The Psi4 Developers.
+ * Copyright (c) 2007-2019 The Psi4 Developers.
  *
  * The copyrights for code used from other parties are included in
  * the corresponding files.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * This file is part of Psi4.
  *
- * This program is distributed in the hope that it will be useful,
+ * Psi4 is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * Psi4 is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with Psi4; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * @END LICENSE
  */
-
 
 /**!
 This is a generalized second-order SCF module capable of computing the
@@ -46,6 +46,7 @@ abcd              - Virtual indices
 #ifndef SOSCF_H
 #define SOSCF_H
 
+#include "psi4/libmints/dimension.h"
 #include "psi4/libmints/typedefs.h"
 #include <map>
 
@@ -53,25 +54,27 @@ namespace psi {
 
 /// Forward declare
 class JK;
-class DFERI;
 class IntegralTransform;
 class PSIO;
+class DFHelper;
 
 class SOMCSCF {
-
-public:
-
+   public:
     /**
      * Initialize the SOMCSCF object
      * @param jk      JK object to use.
      * @param AOTOSO  AOTOSO object
      * @param H       Core hamiltonian in the SO basis.
      */
-    // SOMCSCF(std::shared_ptr<JK> jk, SharedMatrix H, bool casscf);
-    SOMCSCF(std::shared_ptr<JK> jk, SharedMatrix AOTOSO,
-            SharedMatrix H);
+    SOMCSCF(std::shared_ptr<JK> jk, SharedMatrix AOTOSO, SharedMatrix H);
 
-    virtual ~SOMCSCF(void);
+    virtual ~SOMCSCF();
+
+    /**
+     * Sets the amount of memory (in doubles) available to the program
+     * @param memory Amount of memory available
+     */
+    void set_memory(size_t memory) { memory_ = memory; }
 
     /**
      * Sets the ras spaces, rotations will not happen inside of a space
@@ -92,6 +95,12 @@ public:
      * @param IFock The AO based IFock matrix
      */
     void set_AO_IFock(SharedMatrix IFock);
+    /**
+     * Forms the rotation matrix exp(U).
+     * @param  x The [oa, av] non-redundant orbital rotation parameters.
+     * @return   The rotation matrix.
+     */
+    SharedMatrix form_rotation_matrix(SharedMatrix x, size_t order = 2);
 
     /**
      * Rotate the current orbitals for a given rotation matrix.
@@ -117,8 +126,7 @@ public:
      * @param OPDM Current active one-particle density matrix
      * @param TPDM Current active two-particle density matrix (symmetrized, dense)
     */
-    void update(SharedMatrix Cocc, SharedMatrix Cact, SharedMatrix Cvir,
-                SharedMatrix OPDM, SharedMatrix TPDM);
+    void update(SharedMatrix Cocc, SharedMatrix Cact, SharedMatrix Cvir, SharedMatrix OPDM, SharedMatrix TPDM);
 
     /**
      * Sets the occupied Fock Matrix
@@ -149,7 +157,7 @@ public:
      * Solves the set of linear equations Hx = gradient using CG.
      * @return x The [oa, av] matrix of non-redundant orbital rotation parameters.
      */
-    SharedMatrix solve(int max_iter=5, double conv=1.e-10, bool print=true);
+    SharedMatrix solve(int max_iter = 5, double conv = 1.e-10, bool print = true);
 
     /**
      * @return gradient Returns the MO gradient.
@@ -162,7 +170,6 @@ public:
      * @return      The symmetry blocked Q matrix
      */
     virtual SharedMatrix compute_Q(SharedMatrix TPDM);
-
 
     /**
      * Computes the Qk matrix Q_pw = (pt|uv)^k \Gamma_{tuvw} with rotated integrals
@@ -196,13 +203,14 @@ public:
     double current_ci_energy() { return energy_ci_; }
     SharedMatrix current_AFock() { return matrices_["AFock"]; }
     SharedMatrix current_IFock() { return matrices_["IFock"]; }
+    virtual void set_eri_tensors(SharedMatrix, SharedMatrix) {}
 
-protected:
-
+   protected:
     /// Parameters
     bool casscf_;
     bool has_fzc_;
     bool compute_IFock_;
+    size_t memory_;
 
     /// Doubles
     double energy_drc_;
@@ -231,7 +239,7 @@ protected:
     std::shared_ptr<JK> jk_;
 
     /// Map of matrices
-    std::map<std::string, SharedMatrix > matrices_;
+    std::map<std::string, SharedMatrix> matrices_;
 
     /// RAS arrays
     std::vector<Dimension> ras_spaces_;
@@ -247,9 +255,7 @@ protected:
     // Grab actMO (dense)
     virtual void set_act_MO();
 
-
-}; // SOMCSCF class
-
+};  // SOMCSCF class
 
 /**
  * Class DFSOMCSCF
@@ -257,28 +263,25 @@ protected:
  * Density fitted second-order MCSCF
  */
 class DFSOMCSCF : public SOMCSCF {
-
-public:
+   public:
     /**
      * Initialize the DF SOMCSCF object
      * @param jk      JK object to use.
-     * @param df      DFERI object to use.
+     * @param df      DFHelper object to use.
      * @param H       Core hamiltonian in the SO basis.
      */
-    DFSOMCSCF(std::shared_ptr<JK> jk, std::shared_ptr<DFERI> df, SharedMatrix AOTOSO,
-            SharedMatrix H);
+    DFSOMCSCF(std::shared_ptr<JK> jk, std::shared_ptr<DFHelper> df, SharedMatrix AOTOSO, SharedMatrix H);
 
-    virtual ~DFSOMCSCF();
+    ~DFSOMCSCF() override;
 
-protected:
+   protected:
+    std::shared_ptr<DFHelper> dfh_;
+    void transform(bool approx_only) override;
+    void set_act_MO() override;
+    SharedMatrix compute_Q(SharedMatrix TPDM) override;
+    SharedMatrix compute_Qk(SharedMatrix TPDM, SharedMatrix U, SharedMatrix Uact) override;
 
-    std::shared_ptr<DFERI> dferi_;
-    virtual void transform(bool approx_only);
-    virtual void set_act_MO();
-    virtual SharedMatrix compute_Q(SharedMatrix TPDM);
-    virtual SharedMatrix compute_Qk(SharedMatrix TPDM, SharedMatrix U, SharedMatrix Uact);
-
-}; // DFSOMCSCF class
+};  // DFSOMCSCF class
 
 /**
  * Class DiskSOMCSCF
@@ -286,8 +289,7 @@ protected:
  * Disk-based fitted second-order MCSCF
  */
 class DiskSOMCSCF : public SOMCSCF {
-
-public:
+   public:
     /**
      * Initialize the DF SOMCSCF object.
      * @param jk      JK object to use.
@@ -295,18 +297,17 @@ public:
      */
     DiskSOMCSCF(std::shared_ptr<JK> jk, std::shared_ptr<IntegralTransform> ints, SharedMatrix AOTOSO, SharedMatrix H);
 
-    virtual ~DiskSOMCSCF();
+    ~DiskSOMCSCF() override;
 
-protected:
-
+   protected:
     std::shared_ptr<IntegralTransform> ints_;
-    std::shared_ptr<PSIO>  psio_;
-    virtual void transform(bool approx_only);
-    virtual void set_act_MO();
-    virtual SharedMatrix compute_Q(SharedMatrix TPDM);
-    virtual SharedMatrix compute_Qk(SharedMatrix TPDM, SharedMatrix U, SharedMatrix Uact);
+    std::shared_ptr<PSIO> psio_;
+    void transform(bool approx_only) override;
+    void set_act_MO() override;
+    SharedMatrix compute_Q(SharedMatrix TPDM) override;
+    SharedMatrix compute_Qk(SharedMatrix TPDM, SharedMatrix U, SharedMatrix Uact) override;
 
-}; // DiskSOMCSCF class
+};  // DiskSOMCSCF class
 
 /**
  * Class IncoreSOMCSCF
@@ -315,8 +316,7 @@ protected:
  * Note: set_eri_tensors should be called _before_ update.
  */
 class IncoreSOMCSCF : public SOMCSCF {
-
-public:
+   public:
     /**
      * Initialize the DF SOMCSCF object.
      * @param jk      JK object to use.
@@ -324,23 +324,20 @@ public:
      */
     IncoreSOMCSCF(std::shared_ptr<JK> jk, SharedMatrix AOTOSO, SharedMatrix H);
 
-    virtual ~IncoreSOMCSCF();
+    ~IncoreSOMCSCF() override;
+    void set_eri_tensors(SharedMatrix aaaa, SharedMatrix aaar) override;
 
-protected:
+   protected:
+    void set_act_MO() override;
+    SharedMatrix compute_Q(SharedMatrix TPDM) override;
+    SharedMatrix compute_Qk(SharedMatrix TPDM, SharedMatrix U, SharedMatrix Uact) override;
 
-    virtual void set_act_MO();
-    virtual SharedMatrix compute_Q(SharedMatrix TPDM);
-    virtual SharedMatrix compute_Qk(SharedMatrix TPDM, SharedMatrix U, SharedMatrix Uact);
-
-    void set_eri_tensors(SharedMatrix aaaa, SharedMatrix aaar);
     bool eri_tensor_set_;
     SharedMatrix mo_aaaa_;
     SharedMatrix mo_aaar_;
 
-}; // DFSOMCSCF class
+};  /// Incore SOMCSCF
 
-
-} // Namespace psi
-
+}  // Namespace psi
 
 #endif

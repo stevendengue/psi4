@@ -3,47 +3,47 @@
 #
 # Psi4: an open-source quantum chemistry software package
 #
-# Copyright (c) 2007-2016 The Psi4 Developers.
+# Copyright (c) 2007-2019 The Psi4 Developers.
 #
 # The copyrights for code used from other parties are included in
 # the corresponding files.
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# This file is part of Psi4.
 #
-# This program is distributed in the hope that it will be useful,
+# Psi4 is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, version 3.
+#
+# Psi4 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# GNU Lesser General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, write to the Free Software Foundation, Inc.,
+# You should have received a copy of the GNU Lesser General Public License along
+# with Psi4; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 # @END LICENSE
 #
-
-from __future__ import print_function
 """Module with utility classes and functions related
 to data tables and text.
 
 """
 import sys
-import re
+import warnings
+
 from psi4 import core
-from psi4.driver import p4const
-from .exceptions import *
+from psi4.driver import constants
+
 
 class Table(object):
     """Class defining a flexible Table object for storing data."""
 
-    def __init__(self, rows=(),
-                 row_label_width=10,
-                 row_label_precision=4,
-                 cols=(),
-                 width=16, precision=10):
+    def __init__(self, rows=(), row_label_width=10, row_label_precision=4, cols=(), width=16, precision=10):
+        warnings.warn(
+            "Using `psi4.driver.p4util.Table` is deprecated, and in 1.4 it will stop working\n",
+            category=FutureWarning,
+            stacklevel=2)
         self.row_label_width = row_label_width
         self.row_label_precision = row_label_precision
         self.width = width
@@ -51,7 +51,7 @@ class Table(object):
         self.rows = rows
 
         if isinstance(cols, str):
-            self.cols = (cols,)
+            self.cols = (cols, )
         else:
             self.cols = cols
 
@@ -119,7 +119,7 @@ class Table(object):
         import copy
         return copy.deepcopy(self)
 
-    def absolute_to_relative(self, Factor=p4const.psi_hartree2kcalmol):
+    def absolute_to_relative(self, Factor=constants.hartree2kcalmol):
         """Function to shift the data of each column of the Table object
         such that the lowest value is zero. A scaling factor of *Factor* is applied.
 
@@ -140,7 +140,7 @@ class Table(object):
                 #print datarow[1][col]
                 datarow[1][col] = (datarow[1][col] - current_min[col]) * Factor
 
-    def scale(self, Factor=p4const.psi_hartree2kcalmol):
+    def scale(self, Factor=constants.hartree2kcalmol):
         """Function to apply a scaling factor *Factor* to the
         data of the Table object.
 
@@ -165,10 +165,9 @@ def banner(text, type=1, width=35, strNotOutfile=False):
     lines = text.split('\n')
     max_length = 0
     for line in lines:
-        if (len(line) > max_length):
-            max_length = len(line)
+        max_length = max(len(line), max_length)
 
-    max_length = max([width, max_length])
+    max_length = max(width, max_length)
 
     null = ''
     if type == 1:
@@ -190,31 +189,40 @@ def banner(text, type=1, width=35, strNotOutfile=False):
 
 def print_stdout(stuff):
     """Function to print *stuff* to standard output stream."""
+    warnings.warn(
+        "Using `psi4.driver.p4util.print_stdout` instead of `print` is deprecated, and in 1.4 it will stop working\n",
+        category=FutureWarning,
+        stacklevel=2)
+
     print(stuff, file=sys.stdout)
 
 
 def print_stderr(stuff):
     """Function to print *stuff* to standard error stream."""
+    warnings.warn(
+        "Using `psi4.driver.p4util.print_stderr` instead of `print(..., file=sys.stderr)` is deprecated, and in 1.4 it will stop working\n",
+        category=FutureWarning,
+        stacklevel=2)
+
     print(stuff, file=sys.stderr)
 
+
 def levenshtein(seq1, seq2):
-    """Function to compute the Levenshtein distance between two strings."""
+    """Compute the Levenshtein distance between two strings."""
+
     oneago = None
-    thisrow = range(1, len(seq2) + 1) + [0]
-    for x in xrange(len(seq1)):
+    thisrow = list(range(1, len(seq2) + 1)) + [0]
+    for x in range(len(seq1)):
         twoago, oneago, thisrow = oneago, thisrow, [0] * len(seq2) + [x + 1]
-        for y in xrange(len(seq2)):
+        for y in range(len(seq2)):
             delcost = oneago[y] + 1
             addcost = thisrow[y - 1] + 1
             subcost = oneago[y - 1] + (seq1[x] != seq2[y])
             thisrow[y] = min(delcost, addcost, subcost)
     return thisrow[len(seq2) - 1]
 
-def find_approximate_string_matches(seq1,options,max_distance):
-    """Function to compute approximate string matches from a list of options."""
-    matches = []
-    for seq2 in options:
-        distance = levenshtein(seq1,seq2)
-        if distance <= max_distance:
-            matches.append(seq2)
-    return matches
+
+def find_approximate_string_matches(seq1, options, max_distance):
+    """Find list of approximate (within `max_distance`) matches to string `seq1` among `options`."""
+
+    return [seq2 for seq2 in options if (levenshtein(seq1, seq2) <= max_distance)]

@@ -3,23 +3,24 @@
  *
  * Psi4: an open-source quantum chemistry software package
  *
- * Copyright (c) 2007-2016 The Psi4 Developers.
+ * Copyright (c) 2007-2019 The Psi4 Developers.
  *
  * The copyrights for code used from other parties are included in
  * the corresponding files.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * This file is part of Psi4.
  *
- * This program is distributed in the hope that it will be useful,
+ * Psi4 is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * Psi4 is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with Psi4; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * @END LICENSE
@@ -38,9 +39,9 @@
 #include "blas.h"
 #include "debugging.h"
 
-namespace psi{
+namespace psi {
 
-    namespace psimrcc{
+namespace psimrcc {
 
 /**
  * \brief Computes the contribution
@@ -52,15 +53,14 @@ namespace psi{
  * + \sum_{UV} t_{iU}^{aV}(\mu) \mathcal{F}_{UV}(\mu)
  * \f]
  */
-void IDMRPT2::build_t1_ia_amplitudes()
-{
-  START_TIMER(1,"Building the T1_ia Amplitudes");
-  blas->solve("t1_eqns[o][v]{u}  =   fock[o][v]{u}");
-  blas->solve("t1_eqns[o][v]{u} +=     t1[o][v]{u} 2@2 F_ae[v][v]{u}");
-  blas->solve("t1_eqns[o][v]{u} += - F_mi[o][o]{u} 1@1 t1[o][v]{u}");
-  blas->solve("t1_eqns[o][v]{u} += #12# t2_ovov[aa][ov]{u} 1@1 fock[aa]{u}");
-  blas->solve("t1_eqns[o][v]{u} += #12# t2_ovOV[ov][AA]{u} 2@1 fock[AA]{u}");
-  END_TIMER(1);
+void IDMRPT2::build_t1_ia_amplitudes() {
+    START_TIMER(1, "Building the T1_ia Amplitudes");
+    blas->solve("t1_eqns[o][v]{u}  =   fock[o][v]{u}");
+    blas->solve("t1_eqns[o][v]{u} +=     t1[o][v]{u} 2@2 F_ae[v][v]{u}");
+    blas->solve("t1_eqns[o][v]{u} += - F_mi[o][o]{u} 1@1 t1[o][v]{u}");
+    blas->solve("t1_eqns[o][v]{u} += #12# t2_ovov[aa][ov]{u} 1@1 fock[aa]{u}");
+    blas->solve("t1_eqns[o][v]{u} += #12# t2_ovOV[ov][AA]{u} 2@1 fock[AA]{u}");
+    END_TIMER(1);
 }
 
 /**
@@ -73,18 +73,18 @@ void IDMRPT2::build_t1_ia_amplitudes()
  * + \sum_{UV} t_{IU}^{AV}(\mu) \mathcal{F}_{UV}(\mu)
  * \f]
  */
-void IDMRPT2::build_t1_IA_amplitudes()
-{
-  START_TIMER(1,"Building the T1_IA Amplitudes");
-  // Closed-shell
-  blas->solve("t1_eqns[O][V]{c} = t1_eqns[o][v]{c}");
-  // Open-shell
-  blas->solve("t1_eqns[O][V]{o}  =   fock[O][V]{o}");
-  blas->solve("t1_eqns[O][V]{o} +=     t1[O][V]{o} 2@2 F_AE[V][V]{o}");
-  blas->solve("t1_eqns[O][V]{o} += - F_MI[O][O]{o} 1@1 t1[O][V]{o}");
-  blas->solve("t1_eqns[O][V]{o} += #12# t2_ovOV[aa][OV]{o} 1@1 fock[aa]{o}");
-  blas->solve("t1_eqns[O][V]{o} += #12# t2_OVOV[AA][OV]{o} 1@1 fock[AA]{o}");
-  END_TIMER(1);
+void IDMRPT2::build_t1_IA_amplitudes() {
+    START_TIMER(1, "Building the T1_IA Amplitudes");
+    // Closed-shell
+    blas->solve("t1_eqns[O][V]{c} = t1_eqns[o][v]{c}");
+    // Open-shell
+    blas->solve("t1_eqns[O][V]{o}  =   fock[O][V]{o}");
+    blas->solve("t1_eqns[O][V]{o} +=     t1[O][V]{o} 2@2 F_AE[V][V]{o}");
+    blas->solve("t1_eqns[O][V]{o} += - F_MI[O][O]{o} 1@1 t1[O][V]{o}");
+    blas->solve("t1_eqns[O][V]{o} += #12# t2_ovOV[aa][OV]{o} 1@1 fock[aa]{o}");
+    blas->solve("t1_eqns[O][V]{o} += #12# t2_OVOV[AA][OV]{o} 1@1 fock[AA]{o}");
+    END_TIMER(1);
 }
 
-}} /* End Namespaces */
+}  // namespace psimrcc
+}  // namespace psi

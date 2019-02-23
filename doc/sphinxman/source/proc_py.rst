@@ -3,23 +3,24 @@
 .. #
 .. # Psi4: an open-source quantum chemistry software package
 .. #
-.. # Copyright (c) 2007-2016 The Psi4 Developers.
+.. # Copyright (c) 2007-2019 The Psi4 Developers.
 .. #
 .. # The copyrights for code used from other parties are included in
 .. # the corresponding files.
 .. #
-.. # This program is free software; you can redistribute it and/or modify
-.. # it under the terms of the GNU General Public License as published by
-.. # the Free Software Foundation; either version 2 of the License, or
-.. # (at your option) any later version.
+.. # This file is part of Psi4.
 .. #
-.. # This program is distributed in the hope that it will be useful,
+.. # Psi4 is free software; you can redistribute it and/or modify
+.. # it under the terms of the GNU Lesser General Public License as published by
+.. # the Free Software Foundation, version 3.
+.. #
+.. # Psi4 is distributed in the hope that it will be useful,
 .. # but WITHOUT ANY WARRANTY; without even the implied warranty of
 .. # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-.. # GNU General Public License for more details.
+.. # GNU Lesser General Public License for more details.
 .. #
-.. # You should have received a copy of the GNU General Public License along
-.. # with this program; if not, write to the Free Software Foundation, Inc.,
+.. # You should have received a copy of the GNU Lesser General Public License along
+.. # with Psi4; if not, write to the Free Software Foundation, Inc.,
 .. # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 .. #
 .. # @END LICENSE
@@ -53,7 +54,7 @@ The function must always take as arguments ``(name, **kwargs)``. ::
 If the function needs to test the identity of ``name`` several times, it
 can be convenient to predefine the lowercase version of the variable. The
 case of all other py-side options (in kwargs) has already been handled by
-:py:func:`~driver.energy()`, etc. in driver.py and need not be repeated here. ::
+:py:func:`~psi4.energy()`, etc. in driver.py and need not be repeated here. ::
 
     # include if convenient
     lowername = name.lower()
@@ -99,7 +100,7 @@ locally to a module, except for those without a module in
 
 If the regular scf module is to be run, run it through
 :py:func:`~proc.scf_helper` so that cast-up can be used. Also, add
-the option to pass the reference wavefunciton by pre-running scf,
+the option to pass the reference wavefunction by pre-running scf,
 then running the module with the ``ref_wfn`` kwarg.  Also, if the full
 two-electron integrals are necessary for the post-scf, compute them if
 only the df integrals were run previously. ::
@@ -128,7 +129,7 @@ need to be returned to the original user state with the following. ::
     optstash.restore()
 
 No function should return anything. ``CURRENT ENERGY`` will be set by
-:py:func:`~driver.energy`, etc. ::
+:py:func:`~psi4.energy`, etc. ::
 
     # never include
     return returnvalue
@@ -147,7 +148,7 @@ keyword |globals__qc_module| and a set of type keywords analogous to
 |globals__ci_type|, |globals__cc_type|, which can have values ``CONV``,
 ``DF``, and ``CD``. These are all *global* keywords, as their values are
 shared among modules rather than (or in addition to) being used internally
-by the module). We're sticking with |scf__scf_type| and
+by the module). We're sticking with |globals__scf_type| and
 |globals__mp2_type| defaulting to ``DF``, while everything higher defaults
 to ``CONV``. In :source:`share/python/driver.py`, a managed method calls a
 "select" function rather than a "run" function. ::

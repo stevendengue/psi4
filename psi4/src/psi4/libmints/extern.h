@@ -3,23 +3,24 @@
  *
  * Psi4: an open-source quantum chemistry software package
  *
- * Copyright (c) 2007-2016 The Psi4 Developers.
+ * Copyright (c) 2007-2019 The Psi4 Developers.
  *
  * The copyrights for code used from other parties are included in
  * the corresponding files.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * This file is part of Psi4.
  *
- * This program is distributed in the hope that it will be useful,
+ * Psi4 is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * Psi4 is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with Psi4; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * @END LICENSE
@@ -34,6 +35,8 @@
 #include <tuple>
 #include "typedefs.h"
 
+#include "psi4/pragma.h"
+
 namespace psi {
 
 class Matrix;
@@ -45,9 +48,8 @@ class BasisSet;
  *  Stores external potential field, computes external potential matrix
  *  Like standard potential integrals, this is negative definite (electrons are the test charge)
  */
-class ExternalPotential {
-protected:
-
+class PSI_API ExternalPotential {
+   protected:
     /// Debug flag
     int debug_;
     /// Print flag
@@ -56,21 +58,21 @@ protected:
     /// Name of potential
     std::string name_;
     /// <Z,x,y,z> array of charges
-    std::vector<std::tuple<double,double,double,double> > charges_;
+    std::vector<std::tuple<double, double, double, double> > charges_;
     /// Auxiliary basis sets (with accompanying molecules and coefs) of diffuse charges
     std::vector<std::pair<std::shared_ptr<BasisSet>, SharedVector> > bases_;
 
-public:
+   public:
     /// Constructur, does nothing
     ExternalPotential();
     /// Destructor, does nothing
     ~ExternalPotential();
 
     /// Set name
-    void setName(const std::string & name) { name_ = name; }
+    void setName(const std::string& name) { name_ = name; }
 
     /// Add a charge Z at (x,y,z)
-    void addCharge(double Z,double x, double y, double z);
+    void addCharge(double Z, double x, double y, double z);
     /// Add a basis of S auxiliary functions with DF coefficients
     void addBasis(std::shared_ptr<BasisSet> basis, SharedVector coefs);
 
@@ -85,7 +87,7 @@ public:
     double computeNuclearEnergy(std::shared_ptr<Molecule> mol);
 
     /// Print a trace of the external potential
-    void print(std::string OutFileRMR = "outfile") const;
+    void print(std::string out_fname = "outfile") const;
 
     /// Python print helper
     void py_print() const { print("outfile"); }
@@ -94,9 +96,8 @@ public:
     void set_print(int print) { print_ = print; }
     /// Debug flag
     void set_debug(int debug) { debug_ = debug; }
-
 };
 
-}
+}  // namespace psi
 
 #endif

@@ -3,23 +3,24 @@
 .. #
 .. # Psi4: an open-source quantum chemistry software package
 .. #
-.. # Copyright (c) 2007-2016 The Psi4 Developers.
+.. # Copyright (c) 2007-2019 The Psi4 Developers.
 .. #
 .. # The copyrights for code used from other parties are included in
 .. # the corresponding files.
 .. #
-.. # This program is free software; you can redistribute it and/or modify
-.. # it under the terms of the GNU General Public License as published by
-.. # the Free Software Foundation; either version 2 of the License, or
-.. # (at your option) any later version.
+.. # This file is part of Psi4.
 .. #
-.. # This program is distributed in the hope that it will be useful,
+.. # Psi4 is free software; you can redistribute it and/or modify
+.. # it under the terms of the GNU Lesser General Public License as published by
+.. # the Free Software Foundation, version 3.
+.. #
+.. # Psi4 is distributed in the hope that it will be useful,
 .. # but WITHOUT ANY WARRANTY; without even the implied warranty of
 .. # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-.. # GNU General Public License for more details.
+.. # GNU Lesser General Public License for more details.
 .. #
-.. # You should have received a copy of the GNU General Public License along
-.. # with this program; if not, write to the Free Software Foundation, Inc.,
+.. # You should have received a copy of the GNU Lesser General Public License along
+.. # with Psi4; if not, write to the Free Software Foundation, Inc.,
 .. # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 .. #
 .. # @END LICENSE
@@ -52,8 +53,8 @@ Interface to LIBEFP by I. Kaliman
 |PSIfour| contains code to interface to the LIBEFP library developed
 in L. Slipchenko's group by I. Kaliman. LIBEFP
 requires no additional licence,
-downloads, or configuration. Conversely, |Psifour| cannot build
-*without* LIBEFP.
+downloads, or configuration. Since February 2017, libefp is not required to build
+|Psifour|.
 
 Installation
 ~~~~~~~~~~~~
@@ -63,15 +64,19 @@ Installation
 * .. image:: https://anaconda.org/psi4/libefp/badges/version.svg
      :target: https://anaconda.org/psi4/libefp
 
-* libefp is available as a conda package for Linux and macOS.
+* libefp is available as a conda package for Linux and macOS (and Windows, through the Ubuntu shell).
 
 * If using the |PSIfour| binary, libefp has already been installed alongside.
 
 * If using |PSIfour| built from source, and anaconda or miniconda has
   already been installed (instructions at :ref:`sec:quickconda`),
-  libefp can be obtained through ``conda install libefp``.
-  Then, hint its location with :makevar:`CMAKE_PREFIX_PATH`,
+  libefp can be obtained through ``conda install libefp -c psi4``.
+  Then enable it as a feature with :makevar:`ENABLE_libefp`,
+  hint its location with :makevar:`CMAKE_PREFIX_PATH`,
   and rebuild |PSIfour| to detect libefp and activate dependent code.
+
+* Previous bullet had details. To build |PSIfour| from source and use
+  libefp from conda without thinking, consult :ref:`sec:condapsi4dev`.
 
 * To remove a conda installation, ``conda remove libefp``.
 
@@ -82,8 +87,8 @@ Installation
 
 * If using |PSIfour| built from source and you want libefp built from
   from source also,
-  let the build system fetch and build it and activate dependent code.
-
+  enable it as a feature with :makevar:`ENABLE_libefp`,
+  and let the build system fetch and build it and activate dependent code.
 
 .. index:: EFP; library fragments
    pair: EFP; adding new
@@ -111,7 +116,7 @@ Creating new efp fragments requires the `GAMESS
 <http://www.msg.ameslab.gov/gamess/>`_ quantum chemistry package.
 Instructions on building new fragments are `here
 <https://github.com/libefp/libefp#how-to-create-custom-efp-fragment-types>`_.
-Once your new fragment is ready, make it assessible to |PSIfour| by
+Once your new fragment is ready, make it accessible to |PSIfour| by
 including the directory in which the ``.efp`` file is located to the colon
 separated environment variable :envvar:`PSIPATH`. Fragments are searched
 for first in the current directory, next in the paths of :envvar:`PSIPATH`, and
@@ -196,6 +201,7 @@ and ``no_com`` and ``no_reorient`` are implied). ::
 
 Running EFP 
 ~~~~~~~~~~~~
+
 EFP can be invoked in similar fashion as other theories provided in |PSIfour|.
 For example, if you want to obtain the EFP interaction energy for benzene and two waters,
 simply provide the following::
@@ -293,4 +299,56 @@ additional configuration.
 
 .. include:: autodoc_available_efpfrag.rst
 
+
+.. _`cmake:libefp`:
+
+How to configure libefp for building Psi4
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Role and Dependencies**
+
+* Role |w---w| In |PSIfour|, libefp is a library that provides additional
+  molecular modeling capabilities (EFP).
+
+* Downstream Dependencies |w---w| |PSIfour| (\ |dr| optional) libefp
+
+* Upstream Dependencies |w---w| libefp |dr| BLAS/LAPACK
+
+**CMake Variables**
+
+* :makevar:`ENABLE_libefp` |w---w| CMake variable toggling whether Psi4 builds with libefp
+* :makevar:`CMAKE_PREFIX_PATH` |w---w| CMake list variable to specify where pre-built dependencies can be found. For libefp, set to an installation directory containing ``include/efp.h``
+* :makevar:`libefp_DIR` |w---w| CMake variable to specify where pre-built libefp can be found. Set to installation directory containing ``share/cmake/libefp/libefpConfig.cmake``
+* :makevar:`CMAKE_DISABLE_FIND_PACKAGE_libefp` |w---w| CMake variable to force internal build of libefp instead of detecting pre-built
+* :makevar:`CMAKE_INSIST_FIND_PACKAGE_libefp` |w---w| CMake variable to force detecting pre-built libefp and not falling back on internal build
+
+**Examples**
+
+A. Build bundled
+
+  .. code-block:: bash
+
+    >>> cmake -DENABLE_libefp=ON
+
+B. Build *without* libefp
+
+  .. code-block:: bash
+
+    >>> cmake
+
+C. Link against pre-built
+
+  .. code-block:: bash
+
+    >>> cmake -DENABLE_libefp=ON -DCMAKE_PREFIX_PATH=/path/to/libefp/root
+
+  .. code-block:: bash
+
+    >>> cmake -DENABLE_libefp=ON -Dlibefp_DIR=/path/to/libefp/configdir
+
+D. Build bundled despite pre-built being detectable
+
+  .. code-block:: bash
+
+    >>> cmake -DENABLE_libefp=ON -DCMAKE_PREFIX_PATH=/path/to/unwanted/libefp/root/and/wanted/other/dependencies/root -DCMAKE_DISABLE_FIND_PACKAGE_libefp=ON
 

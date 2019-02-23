@@ -1,7 +1,9 @@
-set(sources_list quad.cc 
-                 stl_string.cc 
-                 memory_manager.cc 
-                 exception.cc 
-                 combinations.cc 
-)
-psi4_add_module(lib psi4util sources_list parallel)
+list(APPEND sources
+  PsiOutStream.cc
+  combinations.cc
+  exception.cc
+  memory_manager.cc
+  process.cc
+  stl_string.cc
+  )
+psi4_add_module(lib psi4util sources)

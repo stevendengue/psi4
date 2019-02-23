@@ -3,23 +3,24 @@
  *
  * Psi4: an open-source quantum chemistry software package
  *
- * Copyright (c) 2007-2016 The Psi4 Developers.
+ * Copyright (c) 2007-2019 The Psi4 Developers.
  *
  * The copyrights for code used from other parties are included in
  * the corresponding files.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * This file is part of Psi4.
  *
- * This program is distributed in the hope that it will be useful,
+ * Psi4 is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * Psi4 is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with Psi4; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * @END LICENSE
@@ -38,17 +39,15 @@
 
 extern FILE* outfile;
 
-namespace psi{ namespace psimrcc{
+namespace psi {
+namespace psimrcc {
 
-using namespace std;
+void IDMRPT2::build_F_intermediates() {
+    build_F_ae_intermediates();
+    build_F_AE_intermediates();
 
-void IDMRPT2::build_F_intermediates()
-{
-  build_F_ae_intermediates();
-  build_F_AE_intermediates();
-
-  build_F_mi_intermediates();
-  build_F_MI_intermediates();
+    build_F_mi_intermediates();
+    build_F_MI_intermediates();
 }
 
 /**
@@ -57,18 +56,15 @@ void IDMRPT2::build_F_intermediates()
  * \mathcal{F}_{ae}(\mu) = (1-\delta_{ae}) < a| \hat{F}_{\mu}^{A} + \hat{F}_{\mu}^{E}|e>
  * \f]
  */
-void IDMRPT2::build_F_ae_intermediates()
-{
-  START_TIMER(1,"Building the F_ae Intermediates");
+void IDMRPT2::build_F_ae_intermediates() {
+    START_TIMER(1, "Building the F_ae Intermediates");
 
-  blas->solve("F_ae[v][v]{u} = fock[v][v]{u}");
-  blas->solve_zero_two_diagonal("F_ae[v][v]{u}");
-  blas->zero_non_external("F_ae[v][v]{u}");
+    blas->solve("F_ae[v][v]{u} = fock[v][v]{u}");
+    blas->solve_zero_two_diagonal("F_ae[v][v]{u}");
+    blas->zero_non_external("F_ae[v][v]{u}");
 
-  DEBUGGING(3,
-    blas->print("F_ae[v][v]{u}");
-  );
-  END_TIMER(1);
+    DEBUGGING(3, blas->print("F_ae[v][v]{u}"););
+    END_TIMER(1);
 }
 
 /**
@@ -77,16 +73,15 @@ void IDMRPT2::build_F_ae_intermediates()
  * \mathcal{F}_{AE}(\mu) = (1-\delta_{AE}) < A| \hat{F}_{\mu}^{A} + \hat{F}_{\mu}^{E}|E>
  * \f]
  */
-void IDMRPT2::build_F_AE_intermediates()
-{
-  START_TIMER(1,"Building the F_AE Intermediates");
+void IDMRPT2::build_F_AE_intermediates() {
+    START_TIMER(1, "Building the F_AE Intermediates");
 
-  blas->solve("F_AE[V][V]{u} = fock[V][V]{u}");
-  blas->solve_zero_two_diagonal("F_AE[V][V]{u}");
-  blas->zero_non_external("F_AE[V][V]{u}");
+    blas->solve("F_AE[V][V]{u} = fock[V][V]{u}");
+    blas->solve_zero_two_diagonal("F_AE[V][V]{u}");
+    blas->zero_non_external("F_AE[V][V]{u}");
 
-  DEBUGGING(3, blas->print("F_AE[V][V]{u}"); );
-  END_TIMER(1);
+    DEBUGGING(3, blas->print("F_AE[V][V]{u}"););
+    END_TIMER(1);
 }
 
 /**
@@ -95,16 +90,15 @@ void IDMRPT2::build_F_AE_intermediates()
  * \mathcal{F}_{mi}(\mu) = (1-\delta_{mi}) <m| \hat{F}_{\mu}^{D} + \hat{F}_{\mu}^{A}|i>
  * \f]
  */
-void IDMRPT2::build_F_mi_intermediates()
-{
-  START_TIMER(1,"Building the F_mi Intermediates");
+void IDMRPT2::build_F_mi_intermediates() {
+    START_TIMER(1, "Building the F_mi Intermediates");
 
-  blas->solve("F_mi[o][o]{u} = fock[o][o]{u}");
-  blas->solve_zero_two_diagonal("F_mi[o][o]{u}");
-  blas->zero_non_doubly_occupied("F_mi[o][o]{u}");
+    blas->solve("F_mi[o][o]{u} = fock[o][o]{u}");
+    blas->solve_zero_two_diagonal("F_mi[o][o]{u}");
+    blas->zero_non_doubly_occupied("F_mi[o][o]{u}");
 
-  DEBUGGING(3, blas->print("F_mi[o][o]{u}"); );
-  END_TIMER(1);
+    DEBUGGING(3, blas->print("F_mi[o][o]{u}"););
+    END_TIMER(1);
 }
 
 /**
@@ -113,18 +107,16 @@ void IDMRPT2::build_F_mi_intermediates()
  * \mathcal{F}_{MI}(\mu) = (1-\delta_{MI}) <M| \hat{F}_{\mu}^{D} + \hat{F}_{\mu}^{A}|I>
  * \f]
  */
-void IDMRPT2::build_F_MI_intermediates()
-{
-  START_TIMER(1,"Building the F_MI Intermediates");
+void IDMRPT2::build_F_MI_intermediates() {
+    START_TIMER(1, "Building the F_MI Intermediates");
 
-  blas->solve("F_MI[O][O]{u} = fock[O][O]{u}");
-  blas->solve_zero_two_diagonal("F_MI[O][O]{u}");
-  blas->zero_non_doubly_occupied("F_MI[O][O]{u}");
+    blas->solve("F_MI[O][O]{u} = fock[O][O]{u}");
+    blas->solve_zero_two_diagonal("F_MI[O][O]{u}");
+    blas->zero_non_doubly_occupied("F_MI[O][O]{u}");
 
-  DEBUGGING(3,
-    blas->print("F_MI[O][O]{u}");
-  );
-  END_TIMER(1);
+    DEBUGGING(3, blas->print("F_MI[O][O]{u}"););
+    END_TIMER(1);
 }
 
-}} /* End Namespaces */
+}  // namespace psimrcc
+}  // namespace psi

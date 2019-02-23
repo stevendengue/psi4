@@ -1,7 +1,5 @@
 #! Optimize H2O HF/cc-pVDZ
 
-memory 250 mb
-
 nucenergy =   9.3007948234239  #TEST
 refenergy = -76.0270535127645  #TEST
 
@@ -15,4 +13,4 @@ set basis cc-pVDZ
 optimize('scf')
 
 compare_values(nucenergy, h2o.nuclear_repulsion_energy(), 3, "Nuclear repulsion energy")    #TEST
-compare_values(refenergy, get_variable("CURRENT ENERGY"), 4, "Reference energy") #TEST
+compare_values(refenergy, variable("CURRENT ENERGY"), 4, "Reference energy") #TEST

@@ -3,23 +3,24 @@
 .. #
 .. # Psi4: an open-source quantum chemistry software package
 .. #
-.. # Copyright (c) 2007-2016 The Psi4 Developers.
+.. # Copyright (c) 2007-2019 The Psi4 Developers.
 .. #
 .. # The copyrights for code used from other parties are included in
 .. # the corresponding files.
 .. #
-.. # This program is free software; you can redistribute it and/or modify
-.. # it under the terms of the GNU General Public License as published by
-.. # the Free Software Foundation; either version 2 of the License, or
-.. # (at your option) any later version.
+.. # This file is part of Psi4.
 .. #
-.. # This program is distributed in the hope that it will be useful,
+.. # Psi4 is free software; you can redistribute it and/or modify
+.. # it under the terms of the GNU Lesser General Public License as published by
+.. # the Free Software Foundation, version 3.
+.. #
+.. # Psi4 is distributed in the hope that it will be useful,
 .. # but WITHOUT ANY WARRANTY; without even the implied warranty of
 .. # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-.. # GNU General Public License for more details.
+.. # GNU Lesser General Public License for more details.
 .. #
-.. # You should have received a copy of the GNU General Public License along
-.. # with this program; if not, write to the Free Software Foundation, Inc.,
+.. # You should have received a copy of the GNU Lesser General Public License along
+.. # with Psi4; if not, write to the Free Software Foundation, Inc.,
 .. # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 .. #
 .. # @END LICENSE
@@ -37,8 +38,10 @@ Basis Sets by Family
 Tables :ref:`Pople <table:basisPopleOrbital>`,
 :ref:`Dunning <table:basisDunningOrbital>`, 
 :ref:`Dunning (Douglas-Kroll) <table:basisDunningDK>`, 
+:ref:`Dunning (F12) <table:basisDunningF12>`, 
 :ref:`Karlsruhe <table:basisKarlsruhe>`,
 :ref:`Jensen <table:basisJensen>`,
+:ref:`Petersson <table:basisPetersson>`,
 and :ref:`Other <table:basisOther>` summarize the orbital basis sets available in
 |PSIfour|.  These tables are arranged so that columns indicate degree of
 augmentation by diffuse functions (generally necessary for anions, excited
@@ -188,6 +191,19 @@ Appendix :ref:`apdx:basisElement`.
 |
 |
 
+.. _`table:basisDunningF12`:
+
+.. table:: Summary of Dunning F12 orbital basis sets available in |PSIfour|
+
+    +------------------+------------+-----+-----+-----+-----+-----+------------------+--------+-------+
+    | basis set        | no diffuse | feb | mar | apr | may | jun | heavy-aug [#f2]_ | aug    | d-aug |
+    +==================+============+=====+=====+=====+=====+=====+==================+========+=======+
+    | cc-pVXZ-F12      | DTQ        |     |     |     |     |     |                  |        |       |
+    +------------------+------------+-----+-----+-----+-----+-----+------------------+--------+-------+
+
+|
+|
+
 .. _`table:basisDunningJKFIT`:
 
 .. table:: Summary of Dunning JK-fitting basis sets available in |PSIfour|
@@ -300,6 +316,20 @@ Appendix :ref:`apdx:basisElement`.
 |
 |
 
+.. _`table:basisPetersson`:
+
+.. table:: Summary of Petersson orbital basis sets available in |PSIfour|
+
+    +---------------+--------------+-----+
+    | basis set     |  augmented, tight  |
+    +===============+==============+=====+
+    | nZaPa-NR      |    234567          |
+    +---------------+--------------+-----+
+
+|
+|
+
+
 .. _`table:basisOther`:
 
 .. table:: Summary of other orbital basis sets available in |PSIfour|
@@ -329,7 +359,7 @@ Appendix :ref:`apdx:basisElement`.
 .. [#f2] The heavy-aug-cc-\ *stub* and jul-cc-\ *stub* basis sets are identical.
 .. [#f3] The JKFIT basis sets are designed in the cc-\ *stub*\ (X+d)Z 
          framework that includes an additional set of
-         *d*-fuctions for second-row *p*-block elements. Identical basis sets
+         *d*-functions for second-row *p*-block elements. Identical basis sets
          with the cc-\ *stub*\ XZ-JKFIT label are provided for convenience.
 .. [#f4] D\ :math:`\zeta` has :math:`\ell_{max}=2` or d.
          T\ :math:`\zeta` has :math:`\ell_{max}=3` or f.

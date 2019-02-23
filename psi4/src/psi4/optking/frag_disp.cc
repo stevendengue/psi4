@@ -3,23 +3,24 @@
  *
  * Psi4: an open-source quantum chemistry software package
  *
- * Copyright (c) 2007-2016 The Psi4 Developers.
+ * Copyright (c) 2007-2019 The Psi4 Developers.
  *
  * The copyrights for code used from other parties are included in
  * the corresponding files.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * This file is part of Psi4.
  *
- * This program is distributed in the hope that it will be useful,
+ * Psi4 is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * Psi4 is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with Psi4; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * @END LICENSE
@@ -284,12 +285,12 @@ bool FRAG::displace_util(double *dq, bool focus_on_constraints) {
     //   dx = Bt (B Bt)^-1 dq
     //   dx = Bt G^-1 dq, where G = B B^t.
     compute_B(B,0,0);
-    opt_matrix_mult(B, 0, B, 1, G, 0, Nints, Ncarts, Nints, 0);
+    opt_matrix_mult(B, false, B, true, G, false, Nints, Ncarts, Nints, false);
 
     // u B^t (G_inv dq) = dx
     G_inv = symm_matrix_inv(G, Nints, true);
-    opt_matrix_mult(G_inv, 0, &dq, 1, &tmp_v_Nints, 1, Nints, Nints, 1, 0);
-    opt_matrix_mult(B, 1, &tmp_v_Nints, 1, &dx, 1, Ncarts, Nints, 1, 0);
+    opt_matrix_mult(G_inv, false, &dq, true, &tmp_v_Nints, true, Nints, Nints, 1, false);
+    opt_matrix_mult(B, true, &tmp_v_Nints, true, &dx, true, Ncarts, Nints, 1, false);
     free_matrix(G_inv);
 
     for (i=0; i<Ncarts; ++i)
@@ -302,7 +303,7 @@ bool FRAG::displace_util(double *dq, bool focus_on_constraints) {
     // maximum change and rms change in xyz coordinates < 10^-6
     if ( dx_rms < bt_dx_conv && dx_max < bt_dx_conv)
       bt_iter_done = true;
-    else if (fabs(dx_rms - dx_rms_last) < bt_dx_conv_rms_change)
+    else if (std::fabs(dx_rms - dx_rms_last) < bt_dx_conv_rms_change)
       bt_iter_done = true;
     else if ( bmat_iter_cnt >= bt_max_iter) {
       bt_iter_done = true;

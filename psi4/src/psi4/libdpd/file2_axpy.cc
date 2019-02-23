@@ -3,23 +3,24 @@
  *
  * Psi4: an open-source quantum chemistry software package
  *
- * Copyright (c) 2007-2016 The Psi4 Developers.
+ * Copyright (c) 2007-2019 The Psi4 Developers.
  *
  * The copyrights for code used from other parties are included in
  * the corresponding files.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * This file is part of Psi4.
  *
- * This program is distributed in the hope that it will be useful,
+ * Psi4 is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * Psi4 is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with Psi4; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * @END LICENSE
@@ -46,9 +47,7 @@ namespace psi {
  **               FileA
  */
 
-int DPD::file2_axpy(dpdfile2 *FileA, dpdfile2 *FileB, double alpha,
-                    int transA)
-{
+int DPD::file2_axpy(dpdfile2 *FileA, dpdfile2 *FileB, double alpha, int transA) {
     int h, nirreps, my_irrep;
     int row, col;
 
@@ -60,19 +59,16 @@ int DPD::file2_axpy(dpdfile2 *FileA, dpdfile2 *FileB, double alpha,
     file2_mat_rd(FileA);
     file2_mat_rd(FileB);
 
-    for(h=0; h < nirreps; h++) {
+    for (h = 0; h < nirreps; h++) {
+        if (!transA) {
+            for (row = 0; row < FileA->params->rowtot[h]; row++)
+                for (col = 0; col < FileA->params->coltot[h ^ my_irrep]; col++)
+                    FileB->matrix[h][row][col] += alpha * FileA->matrix[h][row][col];
 
-        if(!transA) {
-
-            for(row=0; row < FileA->params->rowtot[h]; row++)
-                for(col=0; col < FileA->params->coltot[h^my_irrep]; col++)
-                    FileB->matrix[h][row][col] += alpha*FileA->matrix[h][row][col];
-
-        }
-        else {
-            for(row=0; row < FileB->params->rowtot[h]; row++)
-                for(col=0; col < FileB->params->coltot[h^my_irrep]; col++)
-                    FileB->matrix[h][row][col] += alpha*FileA->matrix[h^my_irrep][col][row];
+        } else {
+            for (row = 0; row < FileB->params->rowtot[h]; row++)
+                for (col = 0; col < FileB->params->coltot[h ^ my_irrep]; col++)
+                    FileB->matrix[h][row][col] += alpha * FileA->matrix[h ^ my_irrep][col][row];
         }
     }
 
@@ -83,5 +79,4 @@ int DPD::file2_axpy(dpdfile2 *FileA, dpdfile2 *FileB, double alpha,
     return 0;
 }
 
-
-}
+}  // namespace psi

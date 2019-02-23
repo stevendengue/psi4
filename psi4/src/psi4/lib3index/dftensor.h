@@ -3,23 +3,24 @@
  *
  * Psi4: an open-source quantum chemistry software package
  *
- * Copyright (c) 2007-2016 The Psi4 Developers.
+ * Copyright (c) 2007-2019 The Psi4 Developers.
  *
  * The copyrights for code used from other parties are included in
  * the corresponding files.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * This file is part of Psi4.
  *
- * This program is distributed in the hope that it will be useful,
+ * Psi4 is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * Psi4 is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with Psi4; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * @END LICENSE
@@ -28,19 +29,21 @@
 #ifndef three_index_df_H
 #define three_index_df_H
 
+#include "psi4/libmints/typedefs.h"
+#include "psi4/pragma.h"
+
+#include <string>
+
 namespace psi {
 
 class PSIO;
 class BasisSet;
-class Matrix;
-class Vector;
-class Molecule;
 class IntVector;
 class Vector3;
+class Options;
 
 class FittingMetric {
-
-protected:
+   protected:
     /// Pointer to the auxiliary basis set
     std::shared_ptr<BasisSet> aux_;
     /// Pointer to the poisson basis set
@@ -67,8 +70,7 @@ protected:
     /// Fully pivot the fitting metric
     void pivot();
 
-public:
-
+   public:
     /// DF Fitting Metric
     FittingMetric(std::shared_ptr<BasisSet> aux, bool force_C1 = false);
     /// DF Fitting Metric
@@ -80,23 +82,23 @@ public:
     ~FittingMetric();
 
     /// What algorithm to use for symmetric inverse?
-    std::string get_algorithm() const {return algorithm_; }
+    std::string get_algorithm() const { return algorithm_; }
     /// Are poisson functions used?
-    bool is_poisson() const {return is_poisson_; }
+    bool is_poisson() const { return is_poisson_; }
     /// Is the metric inverted?
-    bool is_inverted() const {return is_inverted_; }
+    bool is_inverted() const { return is_inverted_; }
 
     /// The fitting metric or symmetric inverse
-    SharedMatrix get_metric() const {return metric_; }
+    SharedMatrix get_metric() const { return metric_; }
     /// The vector of pivots (for stability) (pivoted->global)
-    std::shared_ptr<IntVector> get_pivots() const {return pivots_; }
+    std::shared_ptr<IntVector> get_pivots() const { return pivots_; }
     /// The vector of back pivots (for stability) (global->pivoted)
-    std::shared_ptr<IntVector> get_reverse_pivots() const {return rev_pivots_; }
+    std::shared_ptr<IntVector> get_reverse_pivots() const { return rev_pivots_; }
 
     /// The gaussian fitting basis
-    std::shared_ptr<BasisSet> get_auxiliary_basis() const {return aux_; }
+    std::shared_ptr<BasisSet> get_auxiliary_basis() const { return aux_; }
     /// The poisson fitting basis
-    std::shared_ptr<BasisSet> get_poisson_basis() const {return pois_; }
+    std::shared_ptr<BasisSet> get_poisson_basis() const { return pois_; }
 
     /// Build the raw fitting metric (sets up indices to canonical)
     void form_fitting_metric();
@@ -114,10 +116,8 @@ public:
     void form_cholesky_factor();
 };
 
-class DFTensor {
-
-protected:
-
+class PSI_API DFTensor {
+   protected:
     /// Debug level
     int debug_;
     /// Print level
@@ -143,7 +143,7 @@ protected:
     SharedMatrix Cavir_;
 
     /// Number of AO primary functions
-    int nso_;
+    int nbf_;
     /// Number of MO primary functions
     int nmo_;
 
@@ -167,24 +167,14 @@ protected:
     void build_metric();
     void print_header();
 
-public:
-
-    DFTensor(std::shared_ptr<BasisSet> primary,
-             std::shared_ptr<BasisSet> auxiliary,
-             SharedMatrix C,
-             int nocc,
-             int nvir,
-             int naocc,
-             int navir,
-             Options& options);
+   public:
+    DFTensor(std::shared_ptr<BasisSet> primary, std::shared_ptr<BasisSet> auxiliary, SharedMatrix C, int nocc, int nvir,
+             int naocc, int navir, Options& options);
 
     /**
     * Assumes all orbitals are active and pull options from enviroment
     **/
-    DFTensor(std::shared_ptr<BasisSet> primary,
-             std::shared_ptr<BasisSet> auxiliary,
-             SharedMatrix C,
-             int nocc,
+    DFTensor(std::shared_ptr<BasisSet> primary, std::shared_ptr<BasisSet> auxiliary, SharedMatrix C, int nocc,
              int nvir);
     ~DFTensor();
 
@@ -197,6 +187,5 @@ public:
     SharedMatrix Imo();
     SharedMatrix Idfmo();
 };
-
 }
 #endif

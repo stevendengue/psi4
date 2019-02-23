@@ -4,8 +4,6 @@
 #! electrostatics and induction. This example uses frozen core as well as
 #! asyncronous I/O while forming the DF integrals and CPHF coefficients.
 
-memory 250 mb
-
 molecule benzene_methane {
      0 1
      C     1.3932178    0.0362913   -0.6332803
@@ -50,11 +48,11 @@ set sapt {
 
 energy('sapt0')
 
-Eelst = psi4.get_variable("SAPT ELST ENERGY")
-Eexch = psi4.get_variable("SAPT EXCH ENERGY")
-Eind  = psi4.get_variable("SAPT IND ENERGY")
-Edisp = psi4.get_variable("SAPT DISP ENERGY")
-ET    = psi4.get_variable("SAPT0 TOTAL ENERGY")
+Eelst = psi4.variable("SAPT ELST ENERGY")
+Eexch = psi4.variable("SAPT EXCH ENERGY")
+Eind  = psi4.variable("SAPT IND ENERGY")
+Edisp = psi4.variable("SAPT DISP ENERGY")
+ET    = psi4.variable("SAPT0 TOTAL ENERGY")
 
 Eref = [ -0.00156580384,  #TEST
           0.00393298774,  #TEST

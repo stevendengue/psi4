@@ -3,23 +3,24 @@
  *
  * Psi4: an open-source quantum chemistry software package
  *
- * Copyright (c) 2007-2016 The Psi4 Developers.
+ * Copyright (c) 2007-2019 The Psi4 Developers.
  *
  * The copyrights for code used from other parties are included in
  * the corresponding files.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * This file is part of Psi4.
  *
- * This program is distributed in the hope that it will be useful,
+ * Psi4 is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * Psi4 is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with Psi4; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * @END LICENSE
@@ -44,8 +45,7 @@ class IntegralFactory;
  * matrix and possible orbital energies. Relavent basis set and integral factory
  * are also contained.
  */
-class OrbitalSpace
-{
+class PSI_API OrbitalSpace {
     /// Unique identifier
     std::string id_;
     /// Name of the orbital space.
@@ -62,28 +62,20 @@ class OrbitalSpace
     std::shared_ptr<IntegralFactory> ints_;
 
     /// MO Dimensionality
-    Dimension dim_; // dim_.n() better equal nirrep_
+    Dimension dim_;  // dim_.n() better equal nirrep_
 
     /// No default constructor
     OrbitalSpace();
 
-public:
-    OrbitalSpace(const std::string& id,
-                 const std::string& name,
-                 const SharedMatrix& full_C,
-                 const std::shared_ptr<Vector>& evals,
-                 const std::shared_ptr<BasisSet>& basis,
+   public:
+    OrbitalSpace(const std::string& id, const std::string& name, const SharedMatrix& full_C,
+                 const std::shared_ptr<Vector>& evals, const std::shared_ptr<BasisSet>& basis,
                  const std::shared_ptr<IntegralFactory>& ints);
 
-    OrbitalSpace(const std::string& id,
-                 const std::string& name,
-                 const SharedMatrix& full_C,
-                 const std::shared_ptr<BasisSet>& basis,
-                 const std::shared_ptr<IntegralFactory>& ints);
+    OrbitalSpace(const std::string& id, const std::string& name, const SharedMatrix& full_C,
+                 const std::shared_ptr<BasisSet>& basis, const std::shared_ptr<IntegralFactory>& ints);
 
-    OrbitalSpace(const std::string& id,
-                 const std::string& name,
-                 const std::shared_ptr<Wavefunction>& wave);
+    OrbitalSpace(const std::string& id, const std::string& name, const std::shared_ptr<Wavefunction>& wave);
 
     int nirrep() const;
     const std::string& id() const;
@@ -108,7 +100,7 @@ public:
     void print() const;
 
     /** Creates an OrbitalSpace from 'from' to the given basis set 'to'
-      */
+     */
     static OrbitalSpace transform(const OrbitalSpace& from, const std::shared_ptr<BasisSet>& to);
 
     /** Returns the overlap matrix between space1 and space2.
@@ -120,18 +112,15 @@ public:
     /** Returns the overlap matrix between basis1 and basis2.
         Throws if the overlap cannot be computed.
       */
-    static SharedMatrix overlap(const std::shared_ptr<BasisSet>& basis1,
-                                const std::shared_ptr<BasisSet>& basis2);
+    static SharedMatrix overlap(const std::shared_ptr<BasisSet>& basis1, const std::shared_ptr<BasisSet>& basis2);
 
     /** Given two spaces, it projects out one space from the other and returns the new spaces.
      * \param orb_space The space to project out. The returned space will be orthogonal to this.
      * \param ri_space The space being projected on. The returned space will be this space minus orb_space.
      * \param linear_tol The tolerance for linear dependencies.
      */
-    static OrbitalSpace build_cabs_space(
-            const OrbitalSpace& orb_space,
-            const OrbitalSpace& ri_space,
-            double linear_tol);
+    static OrbitalSpace build_cabs_space(const OrbitalSpace& orb_space, const OrbitalSpace& ri_space,
+                                         double linear_tol);
 
     /** Given two basis sets, it merges the basis sets and then constructs an orthogonalized
      * space with the same span. Linearly dependent orbitals are thrown out.
@@ -140,21 +129,20 @@ public:
      * \param aux_key option keyword for auxiliery basis set "DF_BASIS_MP2"
      * \param lindep_tol The tolerance for linear dependencies
      */
-    static OrbitalSpace build_ri_space(const std::shared_ptr<Molecule>& molecule, const std::string& obs_key, const std::string& aux_key, double lindep_tol);
+    static OrbitalSpace build_ri_space(const std::shared_ptr<Molecule>& molecule, const std::string& obs_key,
+                                       const std::string& aux_key, double lindep_tol);
 
     /** Given a basis set, it orthogonalizes the orbitals and returns a space with the same
      * span but orthogonal orbitals. Also, linear dependent orbitals are projected out.
      * \param aux_bs The basis to orthogonalize
      * \param lindep_tol The tolerance for linear dependencies
      */
-    static OrbitalSpace build_abs_space(std::shared_ptr<BasisSet> aux_bs, std::shared_ptr<IntegralFactory> ints, double lindep_tol);
-
+    static OrbitalSpace build_abs_space(std::shared_ptr<BasisSet> aux_bs, std::shared_ptr<IntegralFactory> ints,
+                                        double lindep_tol);
 };
 
-namespace SpaceBuilder
-{
-}
+namespace SpaceBuilder {}
 
-}
+}  // namespace psi
 
-#endif // _psi_src_lib_libmints_moindexspace_h_
+#endif  // _psi_src_lib_libmints_moindexspace_h_

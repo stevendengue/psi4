@@ -18,6 +18,10 @@ set reference rhf
 print('  Checking gradient methods (ground state) ...')
 
 set basis sto-3g
+# three keywords below are so test can pass with default max_am_eri=5
+set df_basis_scf cc-pvdz-jkfit
+set df_basis_mp2 cc-pvdz-ri
+set df_basis_cc cc-pvdz-ri
 
 Earray = [
   'SCF',
@@ -44,7 +48,7 @@ for method in Earray:
    banner('Testing %s' % (method)) 
    G, wfn = gradient(method, return_wfn=True)
    ans = wfn.energy()
-   print('%16s\t%s\t%s\t%s' % (method, water.schoenflies_symbol(), get_variable('CURRENT ENERGY') - ans, ans))
+   print('%16s\t%s\t%s\t%s' % (method, water.schoenflies_symbol(), variable('CURRENT ENERGY') - ans, ans))
    clean()
 
 #-------------------------------------------------------------------------------------------
@@ -70,7 +74,7 @@ for method in Earray:
    banner('Testing %s' % (method)) 
    G, wfn = gradient(method, return_wfn=True)
    ans = wfn.energy()
-   print('%16s\t%s\t%s\t%s' % (method, water.schoenflies_symbol(), get_variable('CURRENT ENERGY') - ans, ans))
+   print('%16s\t%s\t%s\t%s' % (method, water.schoenflies_symbol(), variable('CURRENT ENERGY') - ans, ans))
    clean()
 
 #-------------------------------------------------------------------------------------------
@@ -109,7 +113,7 @@ for method in Earray:
 
    banner('Testing %s' % (method)) 
    ans = energy(method)
-   print('%16s\t%s\t%s\t%s' % (method, water.schoenflies_symbol(), get_variable('CURRENT ENERGY') - ans, ans))
+   print('%16s\t%s\t%s\t%s' % (method, water.schoenflies_symbol(), variable('CURRENT ENERGY') - ans, ans))
    clean()
 
 #-------------------------------------------------------------------------------------------
@@ -141,7 +145,7 @@ for method in Earray:
 
    banner('Testing %s' % (method)) 
    ans = energy(method)
-   print('%16s\t%s\t%s\t%s' % (method, water.schoenflies_symbol(), get_variable('CURRENT ENERGY') - ans, ans))
+   print('%16s\t%s\t%s\t%s' % (method, water.schoenflies_symbol(), variable('CURRENT ENERGY') - ans, ans))
    clean()
 
 #-------------------------------------------------------------------------------------------
@@ -169,7 +173,7 @@ for method in Earray:
 
    banner('Testing %s' % (method)) 
    ans = energy(method)
-   print('%16s\t%s\t%s\t%s' % (method, water.schoenflies_symbol(), get_variable('CURRENT ENERGY') - ans, ans))
+   print('%16s\t%s\t%s\t%s' % (method, water.schoenflies_symbol(), variable('CURRENT ENERGY') - ans, ans))
    clean()
 
 #-------------------------------------------------------------------------------------------
@@ -208,7 +212,7 @@ for method in Earray:
 
    banner('Testing %s' % (method)) 
    ans = energy(method)
-   print('%16s\t%s\t%s\t%s' % (method, water.schoenflies_symbol(), get_variable('CURRENT ENERGY') - ans, ans))
+   print('%16s\t%s\t%s\t%s' % (method, water.schoenflies_symbol(), variable('CURRENT ENERGY') - ans, ans))
    clean()
 
 

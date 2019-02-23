@@ -3,8 +3,6 @@
 refcc       = -76.23811132362982 #TEST
 refcc_t     = -76.24115214074588 #TEST
 
-memory 256 mb
-
 molecule h2o {
 0 1
 o
@@ -25,7 +23,7 @@ set {
 
 energy('ccsd(t)')
 
-compare_values(refcc, get_variable("CCSD TOTAL ENERGY"), 6, "DF-CCSD");               #TEST
-compare_values(refcc_t, get_variable("CCSD(T) TOTAL ENERGY"), 6, "DF-CCSD(T)");               #TEST
+compare_values(refcc, variable("CCSD TOTAL ENERGY"), 6, "DF-CCSD");               #TEST
+compare_values(refcc_t, variable("CCSD(T) TOTAL ENERGY"), 6, "DF-CCSD(T)");               #TEST
 
 

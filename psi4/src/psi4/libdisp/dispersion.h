@@ -3,23 +3,24 @@
  *
  * Psi4: an open-source quantum chemistry software package
  *
- * Copyright (c) 2007-2016 The Psi4 Developers.
+ * Copyright (c) 2007-2019 The Psi4 Developers.
  *
  * The copyrights for code used from other parties are included in
  * the corresponding files.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * This file is part of Psi4.
  *
- * This program is distributed in the hope that it will be useful,
+ * Psi4 is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * Psi4 is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with Psi4; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * @END LICENSE
@@ -40,18 +41,15 @@
 namespace psi {
 
 class Molecule;
-class Matrix;
 
 class Dispersion {
-
-public:
+   public:
     enum C6_type { C6_arit, C6_geom };
     enum C8_type { C8_geom };
     enum Damping_type { Damping_D1, Damping_CHG, Damping_TT };
     enum Spherical_type { Spherical_Das, Spherical_zero };
 
-protected:
-
+   protected:
     std::string name_;
     std::string description_;
     std::string citation_;
@@ -74,22 +72,21 @@ protected:
     const double *A_;
     const double *Beta_;
 
-public:
-
+   public:
     Dispersion();
     virtual ~Dispersion();
 
-    static std::shared_ptr<Dispersion> build(const std::string & type, double s6 = 0.0,
-        double p1 = 0.0, double p2 = 0.0, double p3 = 0.0);
+    static std::shared_ptr<Dispersion> build(const std::string & type, double s6 = 0.0, double alpha6 = 0.0,
+                                             double sr6 = 0.0);
 
     std::string name() const { return name_; }
     std::string description() const { return description_; }
     std::string citation() const { return citation_; }
     std::string bibtex() const { return bibtex_; }
-    void set_name(const std::string & name) { name_ = name; }
-    void set_description(const std::string & description) { description_ = description; }
-    void set_citation(const std::string & citation) { citation_ = citation; }
-    void set_bibtex(const std::string & bibtex) { bibtex_ = bibtex; }
+    void set_name(const std::string &name) { name_ = name; }
+    void set_description(const std::string &description) { description_ = description; }
+    void set_citation(const std::string &citation) { citation_ = citation; }
+    void set_bibtex(const std::string &bibtex) { bibtex_ = bibtex; }
 
     std::shared_ptr<Vector> set_atom_list(std::shared_ptr<Molecule> mol);
 
@@ -115,10 +112,9 @@ public:
     virtual SharedMatrix compute_gradient(std::shared_ptr<Molecule> m);
     virtual SharedMatrix compute_hessian(std::shared_ptr<Molecule> m);
 
-    virtual void print(std::string OutFileRMR = "outfile", int level = 1) const;
+    virtual void print(std::string out_fname = "outfile", int level = 1) const;
     void py_print() const { print("outfile", 1); }
 };
-
 }
 
 #endif

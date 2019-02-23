@@ -3,23 +3,24 @@
  *
  * Psi4: an open-source quantum chemistry software package
  *
- * Copyright (c) 2007-2016 The Psi4 Developers.
+ * Copyright (c) 2007-2019 The Psi4 Developers.
  *
  * The copyrights for code used from other parties are included in
  * the corresponding files.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * This file is part of Psi4.
  *
- * This program is distributed in the hope that it will be useful,
+ * Psi4 is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * Psi4 is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with Psi4; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * @END LICENSE
@@ -28,20 +29,22 @@
 #ifndef SOLVER_H
 #define SOLVER_H
 
+#include <psi4/libmints/typedefs.h>
+#include <psi4/liboptions/liboptions.h>
+
+#include <vector>
+#include <string>
+
 namespace psi {
 
-class Matrix;
 class Vector;
-class Hamiltonian;
 class RHamiltonian;
 class UHamiltonian;
 
 class Solver {
+    // => BASE CLASSES <= //
 
-// => BASE CLASSES <= //
-
-protected:
-
+   protected:
     /// Print flag, defaults to 1
     int print_;
     /// Debug flag, defaults to 0
@@ -51,7 +54,7 @@ protected:
     /// Name of solver (set by subclasses)
     std::string name_;
     /// Memory available, in doubles, defaults to 0 => Unlimited storage
-    unsigned long int memory_;
+    size_t memory_;
 
     /// Convergence criteria, defaults to 1.0E-6
     double criteria_;
@@ -69,7 +72,7 @@ protected:
     /// Common initialization
     void common_init();
 
-public:
+   public:
     // => Constructors < = //
 
     /// Default Constructor
@@ -82,7 +85,7 @@ public:
     /// Set precondition type (specific to solver type)
     void set_precondition(const std::string& precondition) { precondition_ = precondition; }
     /// Set maximum vector storage space (defaults to 0 MB => Unlimited storage)
-    void set_memory(unsigned long int memory) { memory_ = memory; }
+    void set_memory(size_t memory) { memory_ = memory; }
     /// Set maximum number of iterations (defaults to 100)
     void set_maxiter(int maxiter) { maxiter_ = maxiter; }
     /// Set convergence criteria (defaults to 1.0E-6)
@@ -106,7 +109,7 @@ public:
     */
     virtual void print_header() const = 0;
     /// Estimate of maximum memory usage (in doubles)
-    virtual unsigned long int memory_estimate() = 0;
+    virtual size_t memory_estimate() = 0;
 
     // => Computers <= //
 
@@ -125,22 +128,19 @@ public:
      * without destroying the object
      */
     virtual void finalize() = 0;
-
-
 };
 
 class RSolver : public Solver {
-
-protected:
+   protected:
     /// Reference to underlying RHamiltonian
     std::shared_ptr<RHamiltonian> H_;
 
-public:
+   public:
     // => Constructors < = //
 
     RSolver(std::shared_ptr<RHamiltonian> H);
     /// Destructor
-    virtual ~RSolver();
+    ~RSolver() override;
 
     // => Accessors <= //
 
@@ -158,18 +158,17 @@ public:
 };
 
 class USolver : public Solver {
-
-protected:
+   protected:
     /// Reference to underlying UHamiltonian
     std::shared_ptr<UHamiltonian> H_;
 
-public:
+   public:
     // => Constructors < = //
 
     /// Reference to underlying RHamiltonian
     USolver(std::shared_ptr<UHamiltonian> H);
     /// Destructor
-    virtual ~USolver();
+    ~USolver() override;
 
     // => Accessors <= //
 
@@ -189,9 +188,7 @@ public:
 // => APPLIED CLASSES <= //
 
 class CGRSolver : public RSolver {
-
-protected:
-
+   protected:
     /// Force vectors
     std::vector<std::shared_ptr<Vector> > b_;
     /// Solution vectors
@@ -241,33 +238,32 @@ protected:
     void beta();
     void update_p();
 
-public:
-
+   public:
     CGRSolver(std::shared_ptr<RHamiltonian> H);
-    virtual ~CGRSolver();
+    ~CGRSolver() override;
 
     /// Static constructor, uses Options object
-    static std::shared_ptr<CGRSolver> build_solver(Options& options,
-        std::shared_ptr<RHamiltonian> H);
+    static std::shared_ptr<CGRSolver> build_solver(Options& options, std::shared_ptr<RHamiltonian> H);
 
     std::vector<std::shared_ptr<Vector> >& x() { return x_; }
     std::vector<std::shared_ptr<Vector> >& b() { return b_; }
 
-    void print_header() const;
-    unsigned long int memory_estimate();
-    void initialize();
-    void solve();
-    void finalize();
+    void print_header() const override;
+    size_t memory_estimate() override;
+    void initialize() override;
+    void solve() override;
+    void finalize() override;
 
     void set_shifts(const std::vector<std::vector<double> >& shifts) { shifts_ = shifts; }
-    void set_A(SharedMatrix A, const std::vector<std::vector<int> > inds) { A_ = A; A_inds_ = inds; }
+    void set_A(SharedMatrix A, const std::vector<std::vector<int> > inds) {
+        A_ = A;
+        A_inds_ = inds;
+    }
     void set_nguess(int nguess) { nguess_ = nguess; }
 };
 
 class DLRSolver : public RSolver {
-
-protected:
-
+   protected:
     // => Control parameters <= //
 
     /// Number of desired roots
@@ -340,26 +336,24 @@ protected:
     // Collapse subspace if needed
     void subspaceCollapse();
 
-public:
-
+   public:
     // => Constructors <= //
 
     /// Constructor
     DLRSolver(std::shared_ptr<RHamiltonian> H);
     /// Destructor
-    virtual ~DLRSolver();
+    ~DLRSolver() override;
 
     /// Static constructor, uses Options object
-    static std::shared_ptr<DLRSolver> build_solver(Options& options,
-        std::shared_ptr<RHamiltonian> H);
+    static std::shared_ptr<DLRSolver> build_solver(Options& options, std::shared_ptr<RHamiltonian> H);
 
     // => Required Methods <= //
 
-    virtual void print_header() const;
-    virtual unsigned long int memory_estimate();
-    virtual void initialize();
-    void solve();
-    void finalize();
+    void print_header() const override;
+    size_t memory_estimate() override;
+    void initialize() override;
+    void solve() override;
+    void finalize() override;
 
     // => Accessors <= //
 
@@ -383,9 +377,7 @@ public:
 };
 
 class RayleighRSolver : public DLRSolver {
-
-protected:
-
+   protected:
     /// Turn an eigenproblem into a linear equations problem
     std::shared_ptr<CGRSolver> cg_;
 
@@ -394,26 +386,24 @@ protected:
     std::string quantity_;
 
     // Find correctors (Like, the most advanced correctors ever)
-    void correctors();
+    void correctors() override;
 
-public:
-
+   public:
     // => Constructors <= //
 
     /// Constructor
     RayleighRSolver(std::shared_ptr<RHamiltonian> H);
     /// Destructor
-    virtual ~RayleighRSolver();
+    ~RayleighRSolver() override;
 
     /// Static constructor, uses Options object
-    static std::shared_ptr<RayleighRSolver> build_solver(Options& options,
-        std::shared_ptr<RHamiltonian> H);
+    static std::shared_ptr<RayleighRSolver> build_solver(Options& options, std::shared_ptr<RHamiltonian> H);
 
     // => Required Methods <= //
 
-    void print_header() const;
-    void initialize();
-    void finalize();
+    void print_header() const override;
+    void initialize() override;
+    void finalize() override;
 
     void set_precondition_maxiter(int maxiter) { precondition_maxiter_ = maxiter; }
     void set_precondition_steps(const std::string& steps) { precondition_steps_ = steps; }
@@ -421,9 +411,7 @@ public:
 };
 
 class DLRXSolver : public RSolver {
-
-protected:
-
+   protected:
     // => Control parameters <= //
 
     /// Number of desired roots
@@ -492,26 +480,24 @@ protected:
     // Collapse subspace if needed
     void subspaceCollapse();
 
-public:
-
+   public:
     // => Constructors <= //
 
     /// Constructor
     DLRXSolver(std::shared_ptr<RHamiltonian> H);
     /// Destructor
-    virtual ~DLRXSolver();
+    ~DLRXSolver() override;
 
     /// Static constructor, uses Options object
-    static std::shared_ptr<DLRXSolver> build_solver(Options& options,
-        std::shared_ptr<RHamiltonian> H);
+    static std::shared_ptr<DLRXSolver> build_solver(Options& options, std::shared_ptr<RHamiltonian> H);
 
     // => Required Methods <= //
 
-    void print_header() const;
-    unsigned long int memory_estimate();
-    void initialize();
-    void solve();
-    void finalize();
+    void print_header() const override;
+    size_t memory_estimate() override;
+    void initialize() override;
+    void solve() override;
+    void finalize() override;
 
     // => Accessors <= //
 
@@ -536,9 +522,7 @@ public:
 
 // Class for solving UHF stability analysis.
 class DLUSolver : public USolver {
-
-protected:
-
+   protected:
     // => Control parameters <= //
 
     /// Number of desired roots
@@ -588,7 +572,7 @@ protected:
     /// Diagonal of Hamiltonian
     std::shared_ptr<Vector> diag_;
     /// Diagonal components of UHamiltonian
-    std::pair< std::shared_ptr<Vector>, std::shared_ptr<Vector> > diag_components;
+    std::pair<std::shared_ptr<Vector>, std::shared_ptr<Vector> > diag_components;
 
     // => Run routines <= //
 
@@ -613,26 +597,24 @@ protected:
     // Collapse subspace if needed
     void subspaceCollapse();
 
-public:
-
+   public:
     // => Constructors <= //
 
     /// Constructor
     DLUSolver(std::shared_ptr<UHamiltonian> H);
     /// Destructor
-    virtual ~DLUSolver();
+    ~DLUSolver() override;
 
     /// Static constructor, uses Options object
-    static std::shared_ptr<DLUSolver> build_solver(Options& options,
-        std::shared_ptr<UHamiltonian> H);
+    static std::shared_ptr<DLUSolver> build_solver(Options& options, std::shared_ptr<UHamiltonian> H);
 
     // => Required Methods <= //
 
-    virtual void print_header() const;
-    virtual unsigned long int memory_estimate(){ return 0;};
-    virtual void initialize();
-    void solve();
-    void finalize();
+    void print_header() const override;
+    size_t memory_estimate() override { return 0; };
+    void initialize() override;
+    void solve() override;
+    void finalize() override;
 
     // => Accessors <= //
 
@@ -641,16 +623,12 @@ public:
     /// Eigenvalues, by state/irrep
     const std::vector<std::vector<double> >& eigenvalues() const { return E_; }
     /// Convert an alpha/beta pair into a single vector
-    std::shared_ptr<Vector> contract_pair(
-            std::pair<std::shared_ptr<Vector>, std::shared_ptr<Vector> > components );
-    void contract_pair(
-            std::pair<std::shared_ptr<Vector>, std::shared_ptr<Vector> > components,
-            std::shared_ptr<Vector> result);
+    std::shared_ptr<Vector> contract_pair(std::pair<std::shared_ptr<Vector>, std::shared_ptr<Vector> > components);
+    void contract_pair(std::pair<std::shared_ptr<Vector>, std::shared_ptr<Vector> > components,
+                       std::shared_ptr<Vector> result);
     /// Convert a single vector into an alpha/beta pair
-    std::pair<std::shared_ptr<Vector>, std::shared_ptr<Vector> > expand_pair(
-            std::shared_ptr<Vector> vec);
-    void expand_pair(std::shared_ptr<Vector> vec,
-                     std::pair<std::shared_ptr<Vector>, std::shared_ptr<Vector> > result);
+    std::pair<std::shared_ptr<Vector>, std::shared_ptr<Vector> > expand_pair(std::shared_ptr<Vector> vec);
+    void expand_pair(std::shared_ptr<Vector> vec, std::pair<std::shared_ptr<Vector>, std::shared_ptr<Vector> > result);
 
     // => Knobs <= //
 
@@ -664,9 +642,6 @@ public:
     void set_nguess(int nguess) { nguess_ = nguess; }
     /// Set norm critera for adding vectors to subspace (defaults to 1.0E-6)
     void set_norm(double norm) { norm_ = norm; }
-
 };
-
-
 }
 #endif

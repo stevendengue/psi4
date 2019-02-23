@@ -3,23 +3,24 @@
  *
  * Psi4: an open-source quantum chemistry software package
  *
- * Copyright (c) 2007-2016 The Psi4 Developers.
+ * Copyright (c) 2007-2019 The Psi4 Developers.
  *
  * The copyrights for code used from other parties are included in
  * the corresponding files.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * This file is part of Psi4.
  *
- * This program is distributed in the hope that it will be useful,
+ * Psi4 is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * Psi4 is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with Psi4; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * @END LICENSE
@@ -48,8 +49,7 @@ class SOBasisSet;
 class Molecule;
 class CdSalcList;
 
-class Deriv
-{
+class PSI_API Deriv {
     const std::shared_ptr<Wavefunction> wfn_;
     std::shared_ptr<IntegralFactory> integral_;
     std::shared_ptr<BasisSet> basis_;
@@ -86,7 +86,8 @@ class Deriv
     SharedMatrix tpdm_ref_contr_;
     /// Final gradient
     SharedMatrix gradient_;
-public:
+
+   public:
     /*!
      * Constructor for derivative object.
      *
@@ -95,10 +96,8 @@ public:
      * \param project_out_translations remove translations from the CdSalcs
      * \param project_out_rotations remove rotations from the CdSalcs
      */
-    Deriv(const std::shared_ptr<Wavefunction>& wave,
-          char needed_irreps=0x1,
-          bool project_out_translations=false,
-          bool project_out_rotations=false);
+    Deriv(const std::shared_ptr<Wavefunction>& wave, char needed_irreps = 0x1, bool project_out_translations = false,
+          bool project_out_rotations = false);
 
     // Is the TPDM already presorted? Default: False
     void set_tpdm_presorted(bool val) { tpdm_presorted_ = val; }
@@ -111,23 +110,15 @@ public:
 
     SharedMatrix compute();
 
-    const SharedMatrix& one_electron() {
-        return opdm_contr_;
-    }
+    const SharedMatrix& one_electron() { return opdm_contr_; }
 
-    const SharedMatrix& lagrangian() {
-        return x_contr_;
-    }
+    const SharedMatrix& lagrangian() { return x_contr_; }
 
-    const SharedMatrix& two_body() {
-        return tpdm_contr_;
-    }
+    const SharedMatrix& two_body() { return tpdm_contr_; }
 
-    const SharedMatrix& gradient() {
-        return gradient_;
-    }
+    const SharedMatrix& gradient() { return gradient_; }
 };
 
-}
+}  // namespace psi
 
 #endif /* DERIV_H_ */

@@ -3,23 +3,24 @@
  *
  * Psi4: an open-source quantum chemistry software package
  *
- * Copyright (c) 2007-2016 The Psi4 Developers.
+ * Copyright (c) 2007-2019 The Psi4 Developers.
  *
  * The copyrights for code used from other parties are included in
  * the corresponding files.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * This file is part of Psi4.
  *
- * This program is distributed in the hope that it will be useful,
+ * Psi4 is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * Psi4 is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with Psi4; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * @END LICENSE
@@ -28,24 +29,20 @@
 #ifndef psi4_libmints_erd_eri_h_
 #define psi4_libmints_erd_eri_h_
 
-#ifdef USING_liberd
+#ifdef USING_erd
 
 #include "psi4/libmints/twobody.h"
 
 typedef int F_INT;
 typedef int F_BOOL;
 
-namespace psi{
-
+namespace psi {
 
 class IntegralFactory;
 class AOShellCombinationsIterator;
 
-class ERDTwoElectronInt : public TwoBodyAOInt
-{
-
-
-protected:
+class ERDTwoElectronInt : public TwoBodyAOInt {
+   protected:
     /// The list of renormalized contraction coefficients for center 1
     double *new_cc_1_;
     /// The list of renormalized contraction coefficients for center 2
@@ -117,27 +114,29 @@ protected:
     F_BOOL screen_;
     /// Whether ERD should use spherical harmonic basis functions
     F_BOOL spheric_;
+    /// Do any of the basis sets have spherical functions
+    bool has_puream_;
     /// Not relating to the monotony of integral computations, but whether the basis sets are all the same
     bool same_bs_;
 
     void normalize_basis();
-public:
-    ERDTwoElectronInt(const IntegralFactory* integral, int deriv=0, bool use_shell_pairs=false);
+
+   public:
+    ERDTwoElectronInt(const IntegralFactory *integral, int deriv = 0, bool use_shell_pairs = false);
     virtual ~ERDTwoElectronInt();
     void compute_scratch_size();
-    virtual size_t compute_shell(const psi::AOShellCombinationsIterator&);
+    virtual size_t compute_shell(const psi::AOShellCombinationsIterator &);
     virtual size_t compute_shell(int, int, int, int);
     virtual size_t compute_shell_deriv1(int, int, int, int);
     virtual size_t compute_shell_deriv2(int, int, int, int);
 };
 
-class ERDERI : public ERDTwoElectronInt
-{
-public:
-    ERDERI(const IntegralFactory* integral, int deriv=0, bool use_shell_pairs=false);
+class ERDERI : public ERDTwoElectronInt {
+   public:
+    ERDERI(const IntegralFactory *integral, int deriv = 0, bool use_shell_pairs = false);
     virtual ~ERDERI();
 };
 
-}//Namespace
-#endif // USING_liberd
-#endif // header guard
+}  // namespace psi
+#endif  // USING_erd
+#endif  // header guard

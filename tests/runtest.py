@@ -3,23 +3,24 @@
 #
 # Psi4: an open-source quantum chemistry software package
 #
-# Copyright (c) 2007-2016 The Psi4 Developers.
+# Copyright (c) 2007-2019 The Psi4 Developers.
 #
 # The copyrights for code used from other parties are included in
 # the corresponding files.
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# This file is part of Psi4.
 #
-# This program is distributed in the hope that it will be useful,
+# Psi4 is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, version 3.
+#
+# Psi4 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# GNU Lesser General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, write to the Free Software Foundation, Inc.,
+# You should have received a copy of the GNU Lesser General Public License along
+# with Psi4; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 # @END LICENSE
@@ -104,13 +105,22 @@ def backtick(exelist):
     #   the proper exit code, 2nd while loop very necessary.
 
 # run psi4 and collect testing status from any compare_* in input file
-if "tests/python" in infile:
+if os.path.isfile(infile):
+    exelist = [psi, infile, outfile, '-l', psidatadir]
+    # On Windows set Python interpreter explicitly as the shebang is ignored
+    if sys.platform.startswith('win'):
+        exelist = [sys.executable] + exelist
+    pyexitcode = backtick(exelist)
+elif os.path.isfile(infile.replace(".dat", ".py")):
     infile = infile.replace(".dat", ".py")
-    os.environ["PYTHONPATH"] = psilibdir
+    if "PYTHONPATH" in os.environ:
+        os.environ["PYTHONPATH"] += os.pathsep + psilibdir
+    else:
+        os.environ["PYTHONPATH"] = psilibdir
     outfile = os.path.dirname(infile) + os.path.sep + outfile
     pyexitcode = backtick(["python", infile, " > ", outfile])
 else:
-    pyexitcode = backtick([psi, infile, outfile, '-l', psidatadir])
+    raise Exception("\n\nError: Input file %s not found\n" % infile)
 
 if sowreap == 'true':
     try:

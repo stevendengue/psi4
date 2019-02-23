@@ -6,8 +6,6 @@
 
 
 
-memory 500 mb
-
 
 molecule bh {
     1  2
@@ -29,7 +27,7 @@ set = {
 
 thisenergy = energy('scf')
 
-stab = get_array_variable("SCF STABILITY EIGENVALUES")
+stab = variable("SCF STABILITY EIGENVALUES")
 
 
 
@@ -56,13 +54,13 @@ set = {
 
 thisenergy = energy('scf')
 
-stab = get_array_variable("SCF STABILITY EIGENVALUES")
+stab = variable("SCF STABILITY EIGENVALUES")
 
 
 set scf_type pk
 
 thisenergy = energy('scf')
 
-stab = get_array_variable("SCF STABILITY EIGENVALUES")
+stab = variable("SCF STABILITY EIGENVALUES")
 
 

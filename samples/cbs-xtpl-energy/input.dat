@@ -1,6 +1,5 @@
 #! Extrapolated water energies
 import numpy as np
-memory 500 mb
 
 
 molecule h2o {
@@ -26,6 +25,8 @@ scf_dz = energy('SCF/cc-pVDZ')
 scf_tzvp = energy('SCF/def2-TZVP')
 
 scf_adtz = energy('SCF/aug-cc-pV[23]Z')
+
+scf_zapa = energy('SCF/[23]ZaPa-NR')
 
 # Three point extrapolation
 # scf_adtqz = energy('SCF/aug-cc-pV[D3Q]Z')

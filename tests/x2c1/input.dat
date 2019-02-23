@@ -1,9 +1,11 @@
 #! Test of SFX2C-1e on water uncontracted cc-pVDZ-DK
 #! The reference numbers are from Lan Cheng's implementation in Cfour
 
-ref_nuc_energy =  8.316179709840201 #TEST
-ref_nr_energy  = -76.00770336258013 #TEST 
-ref_rel_energy = -76.059287839660001 #TEST
+ref_nuc_energy      =   8.316179709840204  #TEST
+scf_ref_nr_energy   = -76.00770336266790   #TEST
+scf_ref_rel_energy  = -76.059287839227238  #TEST
+ccsd_ref_nr_energy  = -76.280731822408143  #TEST
+ccsd_ref_rel_energy = -76.332592039329910  #TEST
 
 molecule h2o {
 O
@@ -17,6 +19,7 @@ units bohr
 
 set {
   scf_type pk
+  e_convergence 12
 }
 
 basis adecon {
@@ -66,11 +69,15 @@ D   1   1.00
 ****
 }
 
-testnr = energy('scf')
+ccsd_nr_energy = energy('ccsd')
+scf_nr_energy = psi4.variable("HF TOTAL ENERGY")
 set relativistic x2c
 set basis_relativistic adecon  # shouldn't need to specify
-testrel = energy('scf')
+ccsd_rel_energy = energy('ccsd')
+scf_rel_energy = psi4.variable("HF TOTAL ENERGY")
 
-compare_values(ref_nuc_energy, h2o.nuclear_repulsion_energy(), 9, "Nuclear repulsion energy") #TEST
-compare_values(ref_nr_energy,testnr, 9, "Non-relativistic SCF energy")                  #TEST
-compare_values(ref_rel_energy,testrel, 9, "X2C relativistic SCF energy")                #TEST
+compare_values(ref_nuc_energy, h2o.nuclear_repulsion_energy(), 8, "Nuclear repulsion energy") #TEST
+compare_values(scf_ref_nr_energy, scf_nr_energy, 8, "Non-relativistic SCF energy")            #TEST
+compare_values(ccsd_ref_nr_energy, ccsd_nr_energy, 8, "Non-relativistic CCSD energy")         #TEST
+compare_values(scf_ref_rel_energy, scf_rel_energy, 8, "X2C relativistic SCF energy")          #TEST
+compare_values(ccsd_ref_rel_energy, ccsd_rel_energy, 8, "X2C relativistic CCSD energy")       #TEST

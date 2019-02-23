@@ -3,23 +3,24 @@
  *
  * Psi4: an open-source quantum chemistry software package
  *
- * Copyright (c) 2007-2016 The Psi4 Developers.
+ * Copyright (c) 2007-2019 The Psi4 Developers.
  *
  * The copyrights for code used from other parties are included in
  * the corresponding files.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * This file is part of Psi4.
  *
- * This program is distributed in the hope that it will be useful,
+ * Psi4 is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * Psi4 is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with Psi4; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * @END LICENSE
@@ -69,23 +70,23 @@ namespace psi {
 /** The CorrelationTable class provides a correlation
     table between two point groups.
 */
-class CorrelationTable {
-  private:
+class PSI_API CorrelationTable {
+   private:
     std::shared_ptr<PointGroup> group_;
     std::shared_ptr<PointGroup> subgroup_;
 
     int n_;
     int subn_;
-    int *ngamma_;
-    int **gamma_;
+    int* ngamma_;
+    int** gamma_;
 
     void clear();
-  public:
+
+   public:
     CorrelationTable();
 
     /// Create a correlation table for the two groups.
-    CorrelationTable(const std::shared_ptr<PointGroup>& group,
-                     const std::shared_ptr<PointGroup>& subgroup);
+    CorrelationTable(const std::shared_ptr<PointGroup>& group, const std::shared_ptr<PointGroup>& subgroup);
 
     ~CorrelationTable();
 
@@ -97,11 +98,10 @@ class CorrelationTable {
     /** Initalize the correlation table.  Returns 0 for success and nonzero
         for failure.  This will fail if the subgroup is not really a subgroup
         of group. */
-    int initialize_table(const std::shared_ptr<PointGroup>& group,
-                         const std::shared_ptr<PointGroup>& subgroup);
+    int initialize_table(const std::shared_ptr<PointGroup>& group, const std::shared_ptr<PointGroup>& subgroup);
 
     /// Converts error codes from initialize_table into a text string.
-    const char *error(int errcod);
+    const char* error(int errcod);
 
     /// Returns the number of irreps in the high order group.
     int n() const { return n_; }
@@ -112,7 +112,7 @@ class CorrelationTable {
     /// Returns the degeneracy of the subgroup irrep.
     int subdegen(int igamma) const;
     /// Returns the number of irreps in the low order group that an irrep
-    //from the high order group can be reduced to.
+    // from the high order group can be reduced to.
     int ngamma(int igamma) const { return ngamma_[igamma]; }
     /** Returns the irreps in the low order group that an irrep from the
         high order group can be reduced to. */
@@ -121,7 +121,7 @@ class CorrelationTable {
     // void print(std::ostream &o=ExEnv::out0()) const;
 };
 
-}
+}  // namespace psi
 
 #endif
 

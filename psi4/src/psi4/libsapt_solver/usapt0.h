@@ -3,23 +3,24 @@
  *
  * Psi4: an open-source quantum chemistry software package
  *
- * Copyright (c) 2007-2016 The Psi4 Developers.
+ * Copyright (c) 2007-2019 The Psi4 Developers.
  *
  * The copyrights for code used from other parties are included in
  * the corresponding files.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * This file is part of Psi4.
  *
- * This program is distributed in the hope that it will be useful,
+ * Psi4 is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * Psi4 is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with Psi4; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * @END LICENSE
@@ -34,17 +35,16 @@
 #include "psi4/libmints/typedefs.h"
 #include "psi4/libqt/qt.h"
 #include <map>
+#include <array>
 
 #ifdef _OPENMP
-  #include <omp.h>
+#include <omp.h>
 #endif
 
 namespace psi {
 
 class JK;
 class Options;
-class Tensor;
-class AtomicDensity;
 class PSIO;
 
 namespace sapt {
@@ -54,12 +54,10 @@ namespace sapt {
     Will need to create better class hierarchy -*/
 
 class USAPT0 {
+   private:
+    Options& options_;
 
-private:
-    Options & options_;
-
-protected:
-
+   protected:
     // SAPT type (until properly subclassed)
     std::string type_;
 
@@ -69,7 +67,7 @@ protected:
     int debug_;
     // Bench flag
     int bench_;
-    
+
     // CPKS maximum iterations
     int cpks_maxiter_;
     // CPKS convergence threshold
@@ -80,22 +78,22 @@ protected:
 
     // Do coupled induction ?
     bool coupled_ind_;
-    
+
     // Memory in doubles
-    unsigned long int memory_;
+    size_t memory_;
 
     // Energies table
     std::map<std::string, double> energies_;
 
     // Dimer primary basis set
     std::shared_ptr<BasisSet> primary_;
-    // Monomer A primary basis set 
+    // Monomer A primary basis set
     std::shared_ptr<BasisSet> primary_A_;
     // Monomer B primary basis set
     std::shared_ptr<BasisSet> primary_B_;
-    // Dimer -RI or -MP2FIT auxiliary basis set 
+    // Dimer -RI or -MP2FIT auxiliary basis set
     std::shared_ptr<BasisSet> mp2fit_;
-    // Dimer -JKFIT auxiliary basis set 
+    // Dimer -JKFIT auxiliary basis set
     std::shared_ptr<BasisSet> jkfit_;
 
     // Dimer SCF energy
@@ -104,13 +102,20 @@ protected:
     double E_monomer_A_;
     // Monomer B SCF energy
     double E_monomer_B_;
-    
+
     // Dimer geometry
     std::shared_ptr<Molecule> dimer_;
     // Monomer A geometry
     std::shared_ptr<Molecule> monomer_A_;
     // Monomer B geometry
     std::shared_ptr<Molecule> monomer_B_;
+
+    // Dimer dipole field
+    std::array<double, 3> dimer_field_;
+    // Monomer A dipole field
+    std::array<double, 3> monomer_A_field_;
+    // Monomer B dipole field
+    std::array<double, 3> monomer_B_field_;
 
     // Monomer A C matrix (full occ), alpha spin
     std::shared_ptr<Matrix> Cocca_A_;
@@ -120,7 +125,7 @@ protected:
     std::shared_ptr<Matrix> Cvira_A_;
     // Monomer B C matrix (full vir), alpha spin
     std::shared_ptr<Matrix> Cvira_B_;
-    
+
     // Monomer A C matrix (full occ), beta spin
     std::shared_ptr<Matrix> Coccb_A_;
     // Monomer B C matrix (full occ), beta spin
@@ -223,7 +228,6 @@ protected:
     // Shared matrices (Fock-like)
     std::map<std::string, std::shared_ptr<Matrix> > vars_;
 
-
     // Print author/sizing/spec info
     virtual void print_header() const;
     // Obligatory
@@ -250,11 +254,10 @@ protected:
     std::map<std::string, std::shared_ptr<Matrix> > build_Cbar(std::shared_ptr<Matrix> Sa, std::shared_ptr<Matrix> Sb);
 
     // Compute the CPKS solution
-    std::map< std::string, std::shared_ptr<Matrix> > compute_x(std::shared_ptr<JK> jk,
-                                                                 std::shared_ptr<Matrix> wa_B,
-                                                                 std::shared_ptr<Matrix> wb_B,
-                                                                 std::shared_ptr<Matrix> wa_A,
-                                                                 std::shared_ptr<Matrix> wb_A);
+    std::map<std::string, std::shared_ptr<Matrix> > compute_x(std::shared_ptr<JK> jk, std::shared_ptr<Matrix> wa_B,
+                                                              std::shared_ptr<Matrix> wb_B,
+                                                              std::shared_ptr<Matrix> wa_A,
+                                                              std::shared_ptr<Matrix> wb_A);
 
     // Build the ExchInd20 potential in the monomer A ov space
     std::shared_ptr<Matrix> build_exch_ind_pot(std::map<std::string, std::shared_ptr<Matrix> >& vars);
@@ -263,75 +266,74 @@ protected:
 
     void initialize(SharedWavefunction mA, SharedWavefunction mB);
 
-//    // ==> DFTSAPT <==
-//
-//    // Number of frequency points in Casimir-Poldar
-//    int freq_points_;
-//    // Frequency scale in Casimir-Poldar
-//    double freq_scale_;
-//    // Maximum number of terms in Casimir-Poldar susceptibility coupling
-//    int freq_max_k_;
-//
-//    // Grab an uncoupled susceptibility in the RI basis
-//    std::shared_ptr<Matrix> uncoupled_susceptibility(
-//        double omega,
-//        std::shared_ptr<Vector> ea,
-//        std::shared_ptr<Vector> er,
-//        std::shared_ptr<Tensor> Bar);
-//    // Grab a coupled susceptibility in the RI basis
-//    std::shared_ptr<Matrix> coupled_susceptibility(
-//        double omega,
-//        std::shared_ptr<Vector> ea,
-//        std::shared_ptr<Vector> er,
-//        std::map<std::string, std::shared_ptr<Tensor> >& vars,
-//        int nmax);
-//    // Grab a coupled susceptibility in the RI basis (N^6)
-//    std::shared_ptr<Matrix> coupled_susceptibility_debug(
-//        double omega,
-//        std::shared_ptr<Vector> ea,
-//        std::shared_ptr<Vector> er,
-//        std::shared_ptr<Tensor> AaaT,
-//        std::shared_ptr<Tensor> AarT,
-//        std::shared_ptr<Tensor> ArrT,
-//        std::shared_ptr<Tensor> DarT);
-//
-//    // => Utility Routines <= //
-//
-//    // Inner product LT' * lambda * RT => Result
-//    std::shared_ptr<Matrix> inner(
-//        std::shared_ptr<Tensor> LT,
-//        std::shared_ptr<Tensor> RT,
-//        std::shared_ptr<Matrix> lambda = std::shared_ptr<Matrix>());
-//    // Fitting product RT * metric => Result
-//    std::shared_ptr<Tensor> fitting(
-//        const std::string& name,
-//        std::shared_ptr<Tensor> RT,
-//        std::shared_ptr<Matrix> metric);
-//    // DAXPY, alpha L + beta R => R
-//    void axpy(
-//        std::shared_ptr<Tensor> LT,
-//        std::shared_ptr<Tensor> RT,
-//        double alpha = 1.0,
-//        double beta = 1.0);
+    //    // ==> DFTSAPT <==
+    //
+    //    // Number of frequency points in Casimir-Poldar
+    //    int freq_points_;
+    //    // Frequency scale in Casimir-Poldar
+    //    double freq_scale_;
+    //    // Maximum number of terms in Casimir-Poldar susceptibility coupling
+    //    int freq_max_k_;
+    //
+    //    // Grab an uncoupled susceptibility in the RI basis
+    //    std::shared_ptr<Matrix> uncoupled_susceptibility(
+    //        double omega,
+    //        std::shared_ptr<Vector> ea,
+    //        std::shared_ptr<Vector> er,
+    //        std::shared_ptr<Tensor> Bar);
+    //    // Grab a coupled susceptibility in the RI basis
+    //    std::shared_ptr<Matrix> coupled_susceptibility(
+    //        double omega,
+    //        std::shared_ptr<Vector> ea,
+    //        std::shared_ptr<Vector> er,
+    //        std::map<std::string, std::shared_ptr<Tensor> >& vars,
+    //        int nmax);
+    //    // Grab a coupled susceptibility in the RI basis (N^6)
+    //    std::shared_ptr<Matrix> coupled_susceptibility_debug(
+    //        double omega,
+    //        std::shared_ptr<Vector> ea,
+    //        std::shared_ptr<Vector> er,
+    //        std::shared_ptr<Tensor> AaaT,
+    //        std::shared_ptr<Tensor> AarT,
+    //        std::shared_ptr<Tensor> ArrT,
+    //        std::shared_ptr<Tensor> DarT);
+    //
+    //    // => Utility Routines <= //
+    //
+    //    // Inner product LT' * lambda * RT => Result
+    //    std::shared_ptr<Matrix> inner(
+    //        std::shared_ptr<Tensor> LT,
+    //        std::shared_ptr<Tensor> RT,
+    //        std::shared_ptr<Matrix> lambda = std::shared_ptr<Matrix>());
+    //    // Fitting product RT * metric => Result
+    //    std::shared_ptr<Tensor> fitting(
+    //        const std::string& name,
+    //        std::shared_ptr<Tensor> RT,
+    //        std::shared_ptr<Matrix> metric);
+    //    // DAXPY, alpha L + beta R => R
+    //    void axpy(
+    //        std::shared_ptr<Tensor> LT,
+    //        std::shared_ptr<Tensor> RT,
+    //        double alpha = 1.0,
+    //        double beta = 1.0);
 
-public:
+   public:
     // Constructor, call this with 3 converged SCF jobs (dimer, monomer A, monomer B)
-    USAPT0(SharedWavefunction d, SharedWavefunction mA, SharedWavefunction mB,
-           Options& options, std::shared_ptr<PSIO> psio);
+    USAPT0(SharedWavefunction d, SharedWavefunction mA, SharedWavefunction mB, Options& options,
+           std::shared_ptr<PSIO> psio);
     virtual ~USAPT0();
 
     // Compute the USAPT0 analysis
     virtual double compute_energy();
 
-//    void fd(int nA, int nB, double** CAp, double** Sp, int nso, int no, double** CBp, double** Cp, std::shared_ptr<Matrix> Sa);
+    //    void fd(int nA, int nB, double** CAp, double** Sp, int nso, int no, double** CBp, double** Cp,
+    //    std::shared_ptr<Matrix> Sa);
 };
 
 class CPKS_USAPT0 {
+    friend class USAPT0;
 
-friend class USAPT0;
-
-protected:
-
+   protected:
     // => Global Data <= //
 
     // Convergence tolerance
@@ -386,18 +388,16 @@ protected:
     // Form the s = Ab product for the provided vectors b (may or may not need more iterations)
     std::map<std::string, std::shared_ptr<Matrix> > product(std::map<std::string, std::shared_ptr<Matrix> >& b);
     // Apply the denominator from r into zs
-    void preconditioner(std::shared_ptr<Matrix> r,
-                        std::shared_ptr<Matrix> z,
-                        std::shared_ptr<Vector> o,
+    void preconditioner(std::shared_ptr<Matrix> r, std::shared_ptr<Matrix> z, std::shared_ptr<Vector> o,
                         std::shared_ptr<Vector> v);
 
-public:
+   public:
     CPKS_USAPT0();
     virtual ~CPKS_USAPT0();
 
     void compute_cpks();
 };
-
-}} // end namespaces
+}  // namespace sapt
+}  // namespace psi
 
 #endif

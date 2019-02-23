@@ -3,23 +3,24 @@
  *
  * Psi4: an open-source quantum chemistry software package
  *
- * Copyright (c) 2007-2016 The Psi4 Developers.
+ * Copyright (c) 2007-2019 The Psi4 Developers.
  *
  * The copyrights for code used from other parties are included in
  * the corresponding files.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * This file is part of Psi4.
  *
- * This program is distributed in the hope that it will be useful,
+ * Psi4 is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * Psi4 is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with Psi4; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * @END LICENSE
@@ -27,17 +28,17 @@
 
 /*! \file
     \ingroup DETCI
-    \brief Enter brief description of file here 
+    \brief Enter brief description of file here
 */
 /*
 ** ODOMETER(): Generalized odometer object.  Each `digit' can have its
 **   own min and max values (and actually each position can be filled by an
-**   integer, not just a single digit).  The low-index digits are the 
+**   integer, not just a single digit).  The low-index digits are the
 **   faster moving ones.  There is also a special lexical increment which
 **   ensures that digit i is greater than digit i+1.
 **
 **   Methods:
-**      Odometer(): Default constructor gives 0 digits and all NULL arrays.
+**      Odometer(): Default constructor gives 0 digits and all nullptr arrays.
 **      Odometer(int n): Construct an odometer with n digits
 **      ~Odometer(): Free's the dynamically allocated memory
 **      size(int m): Set the length of a default-constructed odometer to m
@@ -66,43 +67,43 @@
 #ifndef _psi_src_bin_detci_odometer_h
 #define _psi_src_bin_detci_odometer_h
 
-namespace psi { namespace detci {
+namespace psi {
+namespace detci {
 
 class Odometer {
-
    protected:
-      unsigned length ;
-      int* max ;
-      int* min ;
-      int* value ;
-       
+    unsigned length;
+    int* max;
+    int* min;
+    int* value;
+
    public:
-      Odometer() ;
-      Odometer(unsigned len) { size(len); }
-      ~Odometer() ; 
-      
-      void size(unsigned s) ;
-      void resize(unsigned s) ;
-      void set_max(int m) ;
-      void set_max_lex(int m) ;
-      void set_max(int* m) ;
-      void set_min(int m) ;
-      void set_min_lex(int m) ;
-      void set_min(int* m) ;
-      void set_value(int m) ;
-      void set_value(int* m) ;
-      void get_value(int* m) ;
-      void increment() ;
-      void increment_lex() ;
-      void reset() ;
-      void print() ;
-      unsigned at_max() ;
-      unsigned at_min() ;
-      unsigned get_length() 
-         {return length; }
-      unsigned boundscheck() ;
-} ;
+    Odometer();
+    Odometer(unsigned len) { size(len); }
+    ~Odometer();
 
-}} // namespace psi::detci
+    void size(unsigned s);
+    void resize(unsigned s);
+    void set_max(int m);
+    void set_max_lex(int m);
+    void set_max(int* m);
+    void set_min(int m);
+    void set_min_lex(int m);
+    void set_min(int* m);
+    void set_value(int m);
+    void set_value(int* m);
+    void get_value(int* m);
+    void increment();
+    void increment_lex();
+    void reset();
+    void print();
+    unsigned at_max();
+    unsigned at_min();
+    unsigned get_length() { return length; }
+    unsigned boundscheck();
+};
 
-#endif // header guard
+}  // namespace detci
+}  // namespace psi
+
+#endif  // header guard

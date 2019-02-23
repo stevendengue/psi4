@@ -14,6 +14,7 @@ units bohr
 
 set {
   scf_type pk
+  e_convergence 12
 }
 
 basis adecon {
@@ -63,8 +64,10 @@ D   1   1.00
 ****
 }
 
-testnr = energy('scf')
+ccsd_nr_energy = energy('ccsd')
+scf_nr_energy = psi4.variable("HF TOTAL ENERGY")
 set relativistic x2c
 set basis_relativistic adecon  # shouldn't need to specify
-testrel = energy('scf')
+ccsd_rel_energy = energy('ccsd')
+scf_rel_energy = psi4.variable("HF TOTAL ENERGY")
 

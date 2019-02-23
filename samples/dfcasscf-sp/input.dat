@@ -12,8 +12,8 @@ set {
     reference       rhf
     restricted_docc [1, 0, 0, 0]
     active          [3, 0, 1, 2] 
+    mcscf_algorithm ah
 }
 
 
 casscf_energy = energy('casscf')
-ref_casscf_energy = -76.073828605037164

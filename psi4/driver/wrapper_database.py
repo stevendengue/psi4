@@ -3,23 +3,24 @@
 #
 # Psi4: an open-source quantum chemistry software package
 #
-# Copyright (c) 2007-2016 The Psi4 Developers.
+# Copyright (c) 2007-2019 The Psi4 Developers.
 #
 # The copyrights for code used from other parties are included in
 # the corresponding files.
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# This file is part of Psi4.
 #
-# This program is distributed in the hope that it will be useful,
+# Psi4 is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, version 3.
+#
+# Psi4 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# GNU Lesser General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, write to the Free Software Foundation, Inc.,
+# You should have received a copy of the GNU Lesser General Public License along
+# with Psi4; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 # @END LICENSE
@@ -30,16 +31,14 @@ functions: :py:mod:`driver.energy`, :py:mod:`driver.optimize`,
 :py:mod:`driver.response`, and :py:mod:`driver.frequency`.
 
 """
-from __future__ import absolute_import
-import re
 import os
+import re
 import math
-import warnings
 import pickle
-import copy
 import collections
-from psi4.driver import p4const
-from .driver import *
+
+from psi4.driver import constants
+from psi4.driver.driver import *
 # never import aliases into this file
 
 
@@ -219,6 +218,7 @@ def database(name, db_name, **kwargs):
     if kwargs.get('bsse_type', None) is not None:
         raise ValidationError("""Database: Cannot specify bsse_type for database. Use the cp keyword withing database instead.""")
 
+    allowoptexceeded = kwargs.get('allowoptexceeded', False)
     optstash = p4util.OptionsState(
         ['WRITER_FILE_LABEL'],
         ['SCF', 'REFERENCE'])
@@ -227,16 +227,13 @@ def database(name, db_name, **kwargs):
     kwargs.pop('molecule', None)
 
     # Paths to search for database files: here + PSIPATH + library + PYTHONPATH
-    psidatadir = os.environ.get('PSIDATADIR', None)
-    #nolongerpredictable psidatadir = __file__ + '/../..' if psidatadir is None else psidatadir
-    libraryPath = ':' + os.path.abspath(psidatadir) + '/databases'
-    driver_loc = os.path.dirname(os.path.abspath(__file__))
-    dbPath = os.path.abspath('.') + \
-        ':' + ':'.join([os.path.abspath(x) for x in os.environ.get('PSIPATH', '').split(':')]) + \
-        libraryPath + \
-        ':' + driver_loc  # so the databases can "import qcdb"
-
-    sys.path = [sys.path[0]] + dbPath.split(':') + sys.path[1:]
+    db_paths = []
+    db_paths.append(os.getcwd())
+    db_paths.extend(os.environ.get('PSIPATH', '').split(os.path.pathsep))
+    db_paths.append(os.path.join(core.get_datadir(), 'databases'))
+    db_paths.append(os.path.dirname(__file__))
+    db_paths = list(map(os.path.abspath, db_paths))
+    sys.path[1:1] = db_paths
     # TODO this should be modernized a la interface_cfour
 
     # Define path and load module for requested database
@@ -384,7 +381,7 @@ def database(name, db_name, **kwargs):
     if 'subset' in kwargs:
         db_subset = kwargs['subset']
 
-    if isinstance(db_subset, basestring):
+    if isinstance(db_subset, (str, bytes)):
         if db_subset.lower() == 'small':
             try:
                 database.HRXN_SM
@@ -493,12 +490,12 @@ def database(name, db_name, **kwargs):
 
         # build string of commands for options from the input file  TODO: handle local options too
         commands = ''
-        commands += """\ncore.set_memory(%s)\n\n""" % (core.get_memory())
+        commands += """\ncore.set_memory_bytes(%s)\n\n""" % (core.get_memory())
         for chgdopt in core.get_global_option_list():
             if core.has_global_option_changed(chgdopt):
                 chgdoptval = core.get_global_option(chgdopt)
                 #chgdoptval = core.get_option(chgdopt)
-                if isinstance(chgdoptval, basestring):
+                if isinstance(chgdoptval, (str, bytes)):
                     commands += """core.set_global_option('%s', '%s')\n""" % (chgdopt, chgdoptval)
                 elif isinstance(chgdoptval, int) or isinstance(chgdoptval, float):
                     commands += """core.set_global_option('%s', %s)\n""" % (chgdopt, chgdoptval)
@@ -531,18 +528,25 @@ def database(name, db_name, **kwargs):
         if db_mode == 'continuous':
             exec(banners)
 
-            molecule = core.Molecule.create_molecule_from_string(GEOS[rgt].create_psi4_string_from_molecule())
+            molecule = core.Molecule.from_dict(GEOS[rgt].to_dict())
             molecule.set_name(rgt)
             molecule.update_geometry()
 
             exec(commands)
             #print 'MOLECULE LIVES %23s %8s %4d %4d %4s' % (rgt, core.get_global_option('REFERENCE'),
             #    molecule.molecular_charge(), molecule.multiplicity(), molecule.schoenflies_symbol())
-            ERGT[rgt] = func(molecule=molecule, **kwargs)
+            if allowoptexceeded:
+                try:
+                    ERGT[rgt] = func(molecule=molecule, **kwargs)
+                except ConvergenceError:
+                    core.print_out("Optimization exceeded cycles for %s" % (rgt))
+                    ERGT[rgt] = 0.0
+            else:
+                ERGT[rgt] = func(molecule=molecule, **kwargs)
             core.print_variables()
             exec(actives)
             for envv in db_tabulate:
-                VRGT[rgt][envv.upper()] = core.get_variable(envv)
+                VRGT[rgt][envv.upper()] = core.variable(envv)
             core.set_global_option("REFERENCE", user_reference)
             core.clean()
             #core.opt_clean()
@@ -568,7 +572,7 @@ def database(name, db_name, **kwargs):
                 for envv in db_tabulate:
                     freagent.write("""core.print_out('DATABASE RESULT: computation %d for reagent %s """
                         % (os.getpid(), rgt))
-                    freagent.write("""yields variable value    %20.12f for variable %s\\n' % (core.get_variable(""")
+                    freagent.write("""yields variable value    %20.12f for variable %s\\n' % (core.variable(""")
                     freagent.write("""'%s'), '%s'))\n""" % (envv.upper(), envv.upper()))
 
         elif db_mode == 'reap':
@@ -631,7 +635,8 @@ def database(name, db_name, **kwargs):
         db_rxn = dbse + '-' + str(rxn)
         for i in range(len(ACTV[db_rxn])):
             if abs(ERGT[ACTV[db_rxn][i]]) < 1.0e-12:
-                FAIL[rxn] = 1
+                if not allowoptexceeded:
+                    FAIL[rxn] = 1
 
     #   tabulate requested process::environment variables
     tables += """   For each VARIABLE requested by tabulate, a 'Reaction Value' will be formed from\n"""
@@ -686,10 +691,10 @@ def database(name, db_name, **kwargs):
             ERXN[db_rxn] = 0.0
             for i in range(len(ACTV[db_rxn])):
                 ERXN[db_rxn] += ERGT[ACTV[db_rxn][i]] * RXNM[db_rxn][ACTV[db_rxn][i]]
-            error = p4const.psi_hartree2kcalmol * ERXN[db_rxn] - BIND[db_rxn]
+            error = constants.hartree2kcalmol * ERXN[db_rxn] - BIND[db_rxn]
 
-            tables += """\n%23s   %8.4f %8.4f %10.4f %10.4f""" % (db_rxn, BIND[db_rxn], p4const.psi_hartree2kcalmol * ERXN[db_rxn],
-                error, error * p4const.psi_cal2J)
+            tables += """\n%23s   %8.4f %8.4f %10.4f %10.4f""" % (db_rxn, BIND[db_rxn], constants.hartree2kcalmol * ERXN[db_rxn],
+                error, error * constants.cal2J)
             for i in range(len(ACTV[db_rxn])):
                 tables += """ %16.8f %2.0f""" % (ERGT[ACTV[db_rxn][i]], RXNM[db_rxn][ACTV[db_rxn][i]])
 
@@ -709,11 +714,11 @@ def database(name, db_name, **kwargs):
         MADerror /= float(count_rxn)
         RMSDerror = math.sqrt(RMSDerror / float(count_rxn))
 
-        tables += """%23s %19s %10.4f %10.4f\n""" % ('Minimal Dev', '', minDerror, minDerror * p4const.psi_cal2J)
-        tables += """%23s %19s %10.4f %10.4f\n""" % ('Maximal Dev', '', maxDerror, maxDerror * p4const.psi_cal2J)
-        tables += """%23s %19s %10.4f %10.4f\n""" % ('Mean Signed Dev', '', MSDerror, MSDerror * p4const.psi_cal2J)
-        tables += """%23s %19s %10.4f %10.4f\n""" % ('Mean Absolute Dev', '', MADerror, MADerror * p4const.psi_cal2J)
-        tables += """%23s %19s %10.4f %10.4f\n""" % ('RMS Dev', '', RMSDerror, RMSDerror * p4const.psi_cal2J)
+        tables += """%23s %19s %10.4f %10.4f\n""" % ('Minimal Dev', '', minDerror, minDerror * constants.cal2J)
+        tables += """%23s %19s %10.4f %10.4f\n""" % ('Maximal Dev', '', maxDerror, maxDerror * constants.cal2J)
+        tables += """%23s %19s %10.4f %10.4f\n""" % ('Mean Signed Dev', '', MSDerror, MSDerror * constants.cal2J)
+        tables += """%23s %19s %10.4f %10.4f\n""" % ('Mean Absolute Dev', '', MADerror, MADerror * constants.cal2J)
+        tables += """%23s %19s %10.4f %10.4f\n""" % ('RMS Dev', '', RMSDerror, RMSDerror * constants.cal2J)
         tables += """   %s\n""" % (table_delimit)
 
         core.set_variable('%s DATABASE MEAN SIGNED DEVIATION' % (db_name), MSDerror)
@@ -769,21 +774,3 @@ db = database
 #######################
 ##  End of Database  ##
 #######################
-
-
-# Quickly normalize the types for both python 2 and 3
-try:
-    unicode = unicode
-except NameError:
-    # 'unicode' is undefined, must be Python 3
-    str = str
-    unicode = str
-    bytes = bytes
-    basestring = (str, bytes)
-else:
-    # 'unicode' exists, must be Python 2
-    str = str
-    unicode = unicode
-    bytes = str
-    basestring = basestring
-

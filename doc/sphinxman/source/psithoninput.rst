@@ -3,23 +3,24 @@
 .. #
 .. # Psi4: an open-source quantum chemistry software package
 .. #
-.. # Copyright (c) 2007-2016 The Psi4 Developers.
+.. # Copyright (c) 2007-2019 The Psi4 Developers.
 .. #
 .. # The copyrights for code used from other parties are included in
 .. # the corresponding files.
 .. #
-.. # This program is free software; you can redistribute it and/or modify
-.. # it under the terms of the GNU General Public License as published by
-.. # the Free Software Foundation; either version 2 of the License, or
-.. # (at your option) any later version.
+.. # This file is part of Psi4.
 .. #
-.. # This program is distributed in the hope that it will be useful,
+.. # Psi4 is free software; you can redistribute it and/or modify
+.. # it under the terms of the GNU Lesser General Public License as published by
+.. # the Free Software Foundation, version 3.
+.. #
+.. # Psi4 is distributed in the hope that it will be useful,
 .. # but WITHOUT ANY WARRANTY; without even the implied warranty of
 .. # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-.. # GNU General Public License for more details.
+.. # GNU Lesser General Public License for more details.
 .. #
-.. # You should have received a copy of the GNU General Public License along
-.. # with this program; if not, write to the Free Software Foundation, Inc.,
+.. # You should have received a copy of the GNU Lesser General Public License along
+.. # with Psi4; if not, write to the Free Software Foundation, Inc.,
 .. # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 .. #
 .. # @END LICENSE
@@ -60,21 +61,21 @@ in the |psirc| file ::
 
 which would make the variable ``UGC`` available in all |PSIfour| input files.
 For convenience, the physical constants used within the |PSIfour| code (which
-are obtained from the 3rd edition of the IUPAC Green
-book [Cohen:GreenBook:2008]_) are also automatically loaded as Psithon
+are obtained from `NIST CODATA 2014
+<https://catalog.data.gov/dataset/nist-codata-fundamental-physical-constants-srd-121>`_
+are also automatically loaded as Psithon
 variables (before |psirc| is loaded, so that the user's |psirc| values can
 override the builtins (in the input file, not in the C++ code).
 
-.. _`table:physconst`:
-
 The physical constants used within |PSIfour|, which are automatically
-made available within all |PSIfour| input files.
+made available within all |PSIfour| input files are in :ref:`table:physconst`.
 
-.. literalinclude:: @SFNX_INCLUDE@psi4/driver/p4const/physconst.py
-   :lines: 28-
+.. .. literalinclude:: @SFNX_INCLUDE@psi4/driver/constants/physconst.py
+..    :lines: 28-
 
-The ``psi_`` prefix is to prevent clashes with user-defined variables in
-|PSIfour| input files.
+In Psithon input files, prepend physical constants with ``psi_`` to
+prevent clashes with user-defined variables (*e.g.*, ``psi_h``). In
+PsiAPI mode, access as, *e.g.*, ``psi4.constants.h``.
 
 .. index:: memory
 .. _`sec:memory`:
@@ -82,23 +83,35 @@ The ``psi_`` prefix is to prevent clashes with user-defined variables in
 Memory Specification
 ====================
 
-By default, |PSIfour| assumes that 256 Mb of memory are available. While this is
+By default, |PSIfour| assumes that 500 MiB of memory are available. While this is
 enough for many computations, many of the algorithms will perform better if
 more is available. To specify memory, the ``memory`` keyword should be used. The following
-lines are all equivalent methods for specifying that 2 Gb of RAM is available
+lines are all equivalent methods for specifying that 2 GB of RAM is available
 to |PSIfour|::
 
     # all equivalent
 
-    memory 2 Gb
+    memory 2 GB
     
-    memory 2000 Mb
+    memory 2000 MB
     
-    memory 2000000 Kb
+    memory 2000000 kB
+
+Please note that memory can be specified both in IEC binary units (1 KiB = 1024 bytes) and SI units (1 kB = 1000 bytes). |PSIfour| recognizes and obeys both of them correctly. The units are not case sensitive (Kb and KB are equivalent to kB).
+
+By default, |PSIfour| performs a "sanity check" when parsing Psithon input files, enforcing a minimum memory requirement of 250 MiB. While it is generally not recomennded to do so, expert users can bypass this check by directly setting the number of bytes availble to |PSIfour|::
+
+    # setting available memory to 2 MB
+    set_memory_bytes(2000000)
+
+Please note that this memory setting only governs the maximal memory
+usage of the major data structures, and actual total memory usage
+is slightly higher. This is usually a negligible amount, except when
+setting tiny memory allowances.
 
 One convenient way to override the |PSIfour| default memory is to place a
 memory command in the |psirc| file (Sec. :ref:`sec:psirc`). For example,
-the following makes the default memory 2 Gb. ::
+the following makes the default memory 2 GB. ::
 
     set_memory(2000000000)
 
@@ -106,6 +119,10 @@ However, unless you're assured of having only one job running on a node at
 a time (and all nodes on the filesystem with |psirc| have similar memory
 capacities), it is advised to set memory in the input file on a
 per-calculation basis.
+
+That same command can be used for PsiAPI mode::
+
+    psi4.set_memory(int(5e8))
 
 .. note:: For parallel jobs, the ``memory`` keyword represents the total memory
    available to the job, *not* the memory per thread.
@@ -203,7 +220,7 @@ the basis set is set to cc-pVDZ throughout, the SCF code will have a print
 level of 1 and the ccenergy code, which performs coupled cluster computations,
 will use a print level of 3. In this example a full CCSD computation is
 performed by running the SCF code first, then the coupled cluster modules;
-the :py:func:`~driver.energy` Python helper function ensures that this is performed correctly.
+the :py:func:`~psi4.energy` Python helper function ensures that this is performed correctly.
 Note that the Python interpreter executes commands in the order they appear in
 the input file, so if the last four commands in the above example were to read ::
 
@@ -214,6 +231,23 @@ the input file, so if the last four commands in the above example were to read :
 
 the commands that set the print level would be ineffective, as they would be
 processed after the CCSD computation completes.
+
+In PsiAPI mode, one can use commands :py:func:`~psi4.set_options` and
+:py:func:`~psi4.set_module_options` like below. Note that these values
+should be of correct type, strings for strings, floats for floats like
+convergences. The function `~psi4.core.clean_options` that reinitializes
+all options may also be useful to separate calculations in a PsiAPI
+session. ::
+
+   psi4.set_options({
+       'scf_type': 'pk',
+       'e_convergence': 1.e-5,
+       'soscf': True
+   })
+
+   psi4.set_module_options({
+       'geom_maxiter': 50
+   })
 
 Basis Sets
 ==========
@@ -253,7 +287,7 @@ H\ :sub:`2` and H atom::
     D_e = psi_hartree2kcalmol * (2*h_energy - h2_energy)
     print "De=%f" % D_e
 
-The :py:func:`~driver.energy` function returns the final result of the
+The :py:func:`~psi4.energy` function returns the final result of the
 computation, the requested total energy in Hartrees, which we assign to a
 Python variable. The two energies are then converted to a dissociation
 energy and printed to the output file using standard Python notation.
@@ -261,8 +295,7 @@ energy and printed to the output file using standard Python notation.
 Generally, there are multiple quantities of interest. Appendix
 :ref:`apdx:psivariables_module` lists PSI variables variables set by each
 module, and :ref:`apdx:psivariables_alpha` defines them.  These can be
-
-accessed through the :py:func:`~psi4.get_variable` function. For example, after
+accessed through the :py:func:`~psi4.core.get_variable` function. For example, after
 performing a density fitted MP2 computation, both the spin component
 scaled energy and the unscaled MP2 energy are made available::
 
@@ -271,15 +304,15 @@ scaled energy and the unscaled MP2 energy are made available::
 
 Each module and the Python driver set PSI variables over the course of a
 calculation.  The values for all can be printed in the output file with
-the input file command :py:func:`~psi4.print_variables`. Note that PSI variables
-are cleared at the start of each :py:func:`~driver.energy`, etc. in an input
-file by :py:func:`~psi4.clean_variables()`.
+the input file command :py:func:`~psi4.core.print_variables`. Note that PSI variables
+are cleared at the start of each :py:func:`~psi4.energy`, etc. in an input
+file by :py:func:`~psi4.core.clean_variables()`.
 So if you run in a single input file a STO-3G FCI followed by a
-aug-cc-pVQZ SCF followed by a :py:func:`~psi4.print_variables` command, the
+aug-cc-pVQZ SCF followed by a :py:func:`~psi4.core.print_variables` command, the
 last will include :psivar:`SCF TOTAL ENERGY <SCFTOTALENERGY>` but not 
 :psivar:`FCI TOTAL ENERGY <FCITOTALENERGY>`.
 The entire dictionary of PSI variables can be obtained through
-:py:func:`~psi4.get_variables`.
+:py:func:`~psi4.core.get_variables`.
 
 .. _`sec:returnvals`:
 
@@ -287,8 +320,8 @@ Return Values
 =============
 
 Most of the usual user computation functions (*i.e.*,
-:py:func:`~driver.energy`, :py:func:`~driver.optimize`, and
-:py:func:`~driver.frequency`) return simply the current total energy.
+:py:func:`~psi4.energy`, :py:func:`~psi4.optimize`, and
+:py:func:`~psi4.frequency`) return simply the current total energy.
 Consult the descriptions of other functions in :ref:`sec:psithonFunc` for
 what quantities they return and for what data structures they make
 available for post-processing. Many users need only deal with the simple return
@@ -308,7 +341,7 @@ form for the computation functions. ::
 
 For more elaborate post-processing of computations, adding
 ``return_wfn=True`` keyword argument additionally returns
-:ref:`Wavefunction<sec:psimod_Wavefunction>`. ::
+:py:class:`~psi4.core.Wavefunction`. ::
 
     # power user returns
     E, wfn = energy(..., return_wfn=True)
@@ -383,7 +416,7 @@ and Cartiesian scans.
 Tables of Results
 =================
 
-The results of computations can be compactly tabulated with the :py:func:`~p4util.text.Table` Psithon
+The results of computations can be compactly tabulated with the :py:func:`~psi4.driver.Table` Psithon
 function. For example, in the following potential energy surface scan for water ::
 
     molecule h2o {
@@ -432,8 +465,8 @@ The Python foundations of the |PSIfour| driver and Psithon syntax permit
 many commonly performed post-processing procedures to be integrated into
 the |PSIfour| suite.  
 
-As seen in the neon dimer example from the :ref:`sec:tutorial` section,
-the :py:func:`~driver_nbody.nbody_gufunc` wrapper provides automatic computation of 
+As seen in the neon dimer example from the :ref:`tutorial <sec:tutorial>` section,
+the :py:func:`~psi4.driver.driver_nbody.nbody_gufunc` wrapper provides automatic computation of 
 counterpoise-corrected interaction energies between two molecules.  For
 example, ::
 
@@ -442,7 +475,7 @@ example, ::
 will compute the counterpoise-corrected density-fitted MP2 interaction energy
 between two molecules.
 
-|PSIfour| also provides the :py:func:`~driver_cbs.complete_basis_set` wrapper,
+|PSIfour| also provides the :py:func:`~psi4.cbs` wrapper,
 which automatically computes a complete-basis-set extrapolation (and
 automatically sets up the computations with different basis sets required to
 do the extrapolation).  For example,::
@@ -456,13 +489,13 @@ do the extrapolation).  For example,::
 will compute a 2-point Helgaker extrapolation of the correlation energy
 using the cc-pVDZ and cc-pVTZ basis sets (with method MP2) and add this
 extrapolated correlation energy to the Hartree--Fock energy in the
-largest basis (cc-pVTZ). :py:func:`~driver_cbs.complete_basis_set` can
+largest basis (cc-pVTZ). :py:func:`~psi4.cbs` can
 either be called directly, as in the first example, or the convenience
 syntax of the equivalent second example can be used.
 
 Another very useful and powerful feature of |PSIfour| is the ability
 to compute results on entire databases of molecules at a time,
-as provided by the :py:func:`~wrapper_database.database` wrapper.  For example,::
+as provided by the :py:func:`~psi4.driver.wrapper_database.database` wrapper.  For example,::
 
   database('mp2', 'S22', cp=1, benchmark='S22B')
 

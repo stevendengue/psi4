@@ -3,23 +3,24 @@
 .. #
 .. # Psi4: an open-source quantum chemistry software package
 .. #
-.. # Copyright (c) 2007-2016 The Psi4 Developers.
+.. # Copyright (c) 2007-2019 The Psi4 Developers.
 .. #
 .. # The copyrights for code used from other parties are included in
 .. # the corresponding files.
 .. #
-.. # This program is free software; you can redistribute it and/or modify
-.. # it under the terms of the GNU General Public License as published by
-.. # the Free Software Foundation; either version 2 of the License, or
-.. # (at your option) any later version.
+.. # This file is part of Psi4.
 .. #
-.. # This program is distributed in the hope that it will be useful,
+.. # Psi4 is free software; you can redistribute it and/or modify
+.. # it under the terms of the GNU Lesser General Public License as published by
+.. # the Free Software Foundation, version 3.
+.. #
+.. # Psi4 is distributed in the hope that it will be useful,
 .. # but WITHOUT ANY WARRANTY; without even the implied warranty of
 .. # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-.. # GNU General Public License for more details.
+.. # GNU Lesser General Public License for more details.
 .. #
-.. # You should have received a copy of the GNU General Public License along
-.. # with this program; if not, write to the Free Software Foundation, Inc.,
+.. # You should have received a copy of the GNU Lesser General Public License along
+.. # with Psi4; if not, write to the Free Software Foundation, Inc.,
 .. # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 .. #
 .. # @END LICENSE
@@ -120,7 +121,7 @@ are accounted for as in the case of CIS(D). In the language of
 CIS(D), the former is regarded to introduce the orbital relaxation (OR)
 effect while the latter is argued to give rise to the differential
 correlation (DC) correction to the excited state. In the PR-ADC(2)
-scheme, the the DC term is corrected according to the ground state
+scheme, the DC term is corrected according to the ground state
 PR-MP2 correlation, in which the correlation between the electron pairs
 is accounted for in size-consistent and unitary-invariant fashion by
 modulating the MP1 amplitude. By utilizing the |adc__pr| scheme, substantial
@@ -182,7 +183,7 @@ acceleration,
 
 the computational time reduces to shorter than half of the simple iterative
 procedure. Construction of the denominator of the second term in the above
-equation is less computationally expensive than contruction of one :math:`\sigma`\ -vector with respect to the effective response matrix. The non-iterative excitation energy stated above is calculated as a diagonal element of the Davidson mini-Hamiltonian matrix in the SEM as,
+equation is less computationally expensive than construction of one :math:`\sigma`\ -vector with respect to the effective response matrix. The non-iterative excitation energy stated above is calculated as a diagonal element of the Davidson mini-Hamiltonian matrix in the SEM as,
 
 .. math:: \omega^{Non-Iterative}=
    \mathbf{X_{CIS}}^{\dagger}[\mathbf{A_{SS}^{(2)}}+

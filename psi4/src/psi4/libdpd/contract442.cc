@@ -3,23 +3,24 @@
  *
  * Psi4: an open-source quantum chemistry software package
  *
- * Copyright (c) 2007-2016 The Psi4 Developers.
+ * Copyright (c) 2007-2019 The Psi4 Developers.
  *
  * The copyrights for code used from other parties are included in
  * the corresponding files.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * This file is part of Psi4.
  *
- * This program is distributed in the hope that it will be useful,
+ * Psi4 is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * Psi4 is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with Psi4; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * @END LICENSE
@@ -34,6 +35,7 @@
 #include <cmath>
 #include "psi4/libqt/qt.h"
 #include "dpd.h"
+#include "psi4/libpsi4util/PsiOutStream.h"
 
 namespace psi {
 
@@ -58,11 +60,9 @@ namespace psi {
  ** but (3,2) and (0,3) will not work unless C1 symmetry
  */
 
-int DPD::contract442(dpdbuf4 *X, dpdbuf4 *Y, dpdfile2 *Z, int target_X,
-                     int target_Y, double alpha, double beta)
-{
-    int h,hxbuf,hybuf,nirreps,Gtar,GX,GY,GZ,Hx,Hy,Hz,hlinks;
-    int rking=0;
+int DPD::contract442(dpdbuf4 *X, dpdbuf4 *Y, dpdfile2 *Z, int target_X, int target_Y, double alpha, double beta) {
+    int h, hxbuf, hybuf, nirreps, Gtar, GX, GY, GZ, Hx, Hy, Hz, hlinks;
+    int rking = 0;
     dpdtrans4 Xt, Yt;
     double ***Xmat, ***Ymat, ***Zmat;
     int Xtrans, Ytrans, *numlinks;
@@ -75,13 +75,13 @@ int DPD::contract442(dpdbuf4 *X, dpdbuf4 *Y, dpdfile2 *Z, int target_X,
     GY = Y->file.my_irrep;
     GZ = Z->my_irrep;
 
-    if((target_X == 1) || (target_X == 2)) trans4_init(&Xt, X);
-    if((target_Y == 1) || (target_Y == 2)) trans4_init(&Yt, Y);
+    if ((target_X == 1) || (target_X == 2)) trans4_init(&Xt, X);
+    if ((target_Y == 1) || (target_Y == 2)) trans4_init(&Yt, Y);
 
-    /*  if(fabs(beta) > 0.0) dpd_file2_scm(Z, beta); */
+    /*  if(std::fabs(beta) > 0.0) dpd_file2_scm(Z, beta); */
     file2_scm(Z, beta);
     file2_mat_init(Z);
-    /*  if(fabs(beta) > 0.0) dpd_file2_mat_rd(Z); */
+    /*  if(std::fabs(beta) > 0.0) dpd_file2_mat_rd(Z); */
     file2_mat_rd(Z);
 
 #ifdef DPD_DEBUG
@@ -90,8 +90,8 @@ int DPD::contract442(dpdbuf4 *X, dpdbuf4 *Y, dpdfile2 *Z, int target_X,
 #endif
 
     /* loop over row buffer irreps of X */
-    for(hxbuf=0; hxbuf < nirreps; hxbuf++) {
-        if(target_X == 0) {
+    for (hxbuf = 0; hxbuf < nirreps; hxbuf++) {
+        if (target_X == 0) {
             buf4_mat_irrep_init(X, hxbuf);
             buf4_mat_irrep_rd(X, hxbuf);
             buf4_mat_irrep_shift13(X, hxbuf);
@@ -102,8 +102,7 @@ int DPD::contract442(dpdbuf4 *X, dpdbuf4 *Y, dpdfile2 *Z, int target_X,
             xrow = X->shift.rowtot[hxbuf];
             xcol = X->shift.coltot[hxbuf];
 #endif
-        }
-        else if(target_X == 1) {
+        } else if (target_X == 1) {
             buf4_mat_irrep_init(X, hxbuf);
             buf4_mat_irrep_rd(X, hxbuf);
             trans4_mat_irrep_init(&Xt, hxbuf);
@@ -118,8 +117,7 @@ int DPD::contract442(dpdbuf4 *X, dpdbuf4 *Y, dpdfile2 *Z, int target_X,
             xrow = Xt.shift.coltot[hxbuf];
             xcol = Xt.shift.rowtot[hxbuf];
 #endif
-        }
-        else if(target_X == 2) {
+        } else if (target_X == 2) {
             buf4_mat_irrep_init(X, hxbuf);
             buf4_mat_irrep_rd(X, hxbuf);
             trans4_mat_irrep_init(&Xt, hxbuf);
@@ -133,8 +131,7 @@ int DPD::contract442(dpdbuf4 *X, dpdbuf4 *Y, dpdfile2 *Z, int target_X,
             xrow = Xt.shift.rowtot[hxbuf];
             xcol = Xt.shift.coltot[hxbuf];
 #endif
-        }
-        else if(target_X == 3) {
+        } else if (target_X == 3) {
             buf4_mat_irrep_init(X, hxbuf);
             buf4_mat_irrep_rd(X, hxbuf);
             buf4_mat_irrep_shift31(X, hxbuf);
@@ -146,21 +143,25 @@ int DPD::contract442(dpdbuf4 *X, dpdbuf4 *Y, dpdfile2 *Z, int target_X,
             xrow = X->shift.coltot[hxbuf];
             xcol = X->shift.rowtot[hxbuf];
 #endif
-        }
-        else {
-            outfile->Printf( "Junk X index %d in dpd_contract442\n", target_X);
+        } else {
+            outfile->Printf("Junk X index %d in dpd_contract442\n", target_X);
             exit(PSI_RETURN_FAILURE);
         }
 
         /* read in appropriate block of Y buffer */
         if (target_X < 2) {
-            if (target_Y < 2) hybuf = hxbuf^GZ; else hybuf = hxbuf^GX;
-        }
-        else {
-            if (target_Y < 2) hybuf = hxbuf^GY; else hybuf = hxbuf;
+            if (target_Y < 2)
+                hybuf = hxbuf ^ GZ;
+            else
+                hybuf = hxbuf ^ GX;
+        } else {
+            if (target_Y < 2)
+                hybuf = hxbuf ^ GY;
+            else
+                hybuf = hxbuf;
         }
 
-        if(target_Y == 0) {
+        if (target_Y == 0) {
             buf4_mat_irrep_init(Y, hybuf);
             buf4_mat_irrep_rd(Y, hybuf);
             buf4_mat_irrep_shift13(Y, hybuf);
@@ -170,8 +171,7 @@ int DPD::contract442(dpdbuf4 *X, dpdbuf4 *Y, dpdfile2 *Z, int target_X,
             yrow = Y->shift.coltot[hybuf];
             ycol = Y->shift.rowtot[hybuf];
 #endif
-        }
-        else if(target_Y == 1) {
+        } else if (target_Y == 1) {
             buf4_mat_irrep_init(Y, hybuf);
             buf4_mat_irrep_rd(Y, hybuf);
             trans4_mat_irrep_init(&Yt, hybuf);
@@ -185,8 +185,7 @@ int DPD::contract442(dpdbuf4 *X, dpdbuf4 *Y, dpdfile2 *Z, int target_X,
             yrow = Yt.shift.rowtot[hybuf];
             ycol = Yt.shift.coltot[hybuf];
 #endif
-        }
-        else if(target_Y == 2) {
+        } else if (target_Y == 2) {
             buf4_mat_irrep_init(Y, hybuf);
             buf4_mat_irrep_rd(Y, hybuf);
             trans4_mat_irrep_init(&Yt, hybuf);
@@ -199,8 +198,7 @@ int DPD::contract442(dpdbuf4 *X, dpdbuf4 *Y, dpdfile2 *Z, int target_X,
             yrow = Yt.shift.coltot[hybuf];
             ycol = Yt.shift.rowtot[hybuf];
 #endif
-        }
-        else if(target_Y == 3) {
+        } else if (target_Y == 3) {
             buf4_mat_irrep_init(Y, hybuf);
             buf4_mat_irrep_rd(Y, hybuf);
             buf4_mat_irrep_shift31(Y, hybuf);
@@ -211,26 +209,33 @@ int DPD::contract442(dpdbuf4 *X, dpdbuf4 *Y, dpdfile2 *Z, int target_X,
             yrow = Y->shift.rowtot[hybuf];
             ycol = Y->shift.coltot[hybuf];
 #endif
-        }
-        else {
-            outfile->Printf( "Junk Y index %d in contract442\n", target_Y);
+        } else {
+            outfile->Printf("Junk Y index %d in contract442\n", target_Y);
             exit(PSI_RETURN_FAILURE);
         }
 
-        if(rking)
-            for(Hx=0; Hx < nirreps; Hx++) {
+        if (rking)
+            for (Hx = 0; Hx < nirreps; Hx++) {
 #ifdef DPD_DEBUG
-                if((xrow[Hx] != zrow[Hx]) || (ycol[Hx] != zcol[Hx]) ||
-                        (xcol[Hx] != yrow[Hx])) {
-                    outfile->Printf( "** Alignment error in contract442 **\n");
-                    outfile->Printf( "** Irrep %d; Subirrep %d **\n", h,Hx);
+                if ((xrow[Hx] != zrow[Hx]) || (ycol[Hx] != zcol[Hx]) || (xcol[Hx] != yrow[Hx])) {
+                    outfile->Printf("** Alignment error in contract442 **\n");
+                    outfile->Printf("** Irrep %d; Subirrep %d **\n", h, Hx);
                     dpd_error("dpd_contract442", "outfile");
                 }
 #endif
-                if      ((!Xtrans) && (!Ytrans)) { Hy = Hx^GX;    Hz = Hx;    }
-                else if ((!Xtrans) && (Ytrans) ) { Hy = Hx^GX^GY; Hz = Hx;    }
-                else if ( (Xtrans) && (!Ytrans)) { Hy = Hx;       Hz = Hx^GX; }
-                else /* ( (Xtrans) && (Ytrans))*/{ Hy = Hx^GY;    Hz = Hx^GX; }
+                if ((!Xtrans) && (!Ytrans)) {
+                    Hy = Hx ^ GX;
+                    Hz = Hx;
+                } else if ((!Xtrans) && (Ytrans)) {
+                    Hy = Hx ^ GX ^ GY;
+                    Hz = Hx;
+                } else if ((Xtrans) && (!Ytrans)) {
+                    Hy = Hx;
+                    Hz = Hx ^ GX;
+                } else /* ( (Xtrans) && (Ytrans))*/ {
+                    Hy = Hx ^ GY;
+                    Hz = Hx ^ GX;
+                }
 
                 /*
         if (!Xtrans && !Ytrans) {
@@ -243,54 +248,51 @@ int DPD::contract442(dpdbuf4 *X, dpdbuf4 *Y, dpdfile2 *Z, int target_X,
         }
         */
 
-                newmm_rking(Xmat[Hx], Xtrans, Ymat[Hy], Ytrans,
-                            Z->matrix[Hz], Z->params->rowtot[Hz],
-                            numlinks[Hx], Z->params->coltot[Hz^GZ],
-                        alpha, 1.0);
+                newmm_rking(Xmat[Hx], Xtrans, Ymat[Hy], Ytrans, Z->matrix[Hz], Z->params->rowtot[Hz], numlinks[Hx],
+                            Z->params->coltot[Hz ^ GZ], alpha, 1.0);
             }
         else
-            for(Hx=0; Hx < nirreps; Hx++) {
+            for (Hx = 0; Hx < nirreps; Hx++) {
 #ifdef DPD_DEBUG
-                if((xrow[Hx] != zrow[Hx]) || (ycol[Hx] != zcol[Hx]) ||
-                        (xcol[Hx] != yrow[Hx])) {
-                    outfile->Printf( "** Alignment error in contract442 **\n");
-                    outfile->Printf( "** Irrep %d; Subirrep %d **\n", h,Hx);
+                if ((xrow[Hx] != zrow[Hx]) || (ycol[Hx] != zcol[Hx]) || (xcol[Hx] != yrow[Hx])) {
+                    outfile->Printf("** Alignment error in contract442 **\n");
+                    outfile->Printf("** Irrep %d; Subirrep %d **\n", h, Hx);
                     dpd_error("dpd_contract442", "outfile");
                 }
 #endif
-                if      ((!Xtrans) && (!Ytrans)) { Hy = Hx^GX;    Hz = Hx;    }
-                else if ((!Xtrans) && (Ytrans) ) { Hy = Hx^GX^GY; Hz = Hx;    }
-                else if ( (Xtrans) && (!Ytrans)) { Hy = Hx;       Hz = Hx^GX; }
-                else /* ( (Xtrans) && (Ytrans))*/{ Hy = Hx^GY;    Hz = Hx^GX; }
+                if ((!Xtrans) && (!Ytrans)) {
+                    Hy = Hx ^ GX;
+                    Hz = Hx;
+                } else if ((!Xtrans) && (Ytrans)) {
+                    Hy = Hx ^ GX ^ GY;
+                    Hz = Hx;
+                } else if ((Xtrans) && (!Ytrans)) {
+                    Hy = Hx;
+                    Hz = Hx ^ GX;
+                } else /* ( (Xtrans) && (Ytrans))*/ {
+                    Hy = Hx ^ GY;
+                    Hz = Hx ^ GX;
+                }
                 /* outfile->Printf(stdout,"rows %d links %d cols %d\n",
        Z->params->rowtot[Hz], numlinks[Hx], Z->params->coltot[Hz]); */
 
-                if(Z->params->rowtot[Hz] &&
-                        Z->params->coltot[Hz^GZ] &&
-                        numlinks[Hx]) {
-                    if(!Xtrans && !Ytrans) {
-                        C_DGEMM('n','n',Z->params->rowtot[Hz],Z->params->coltot[Hz^GZ],
-                                numlinks[Hx],alpha,&(Xmat[Hx][0][0]),numlinks[Hx],
-                                &(Ymat[Hy][0][0]),Z->params->coltot[Hz^GZ],1.0,
-                                &(Z->matrix[Hz][0][0]),Z->params->coltot[Hz^GZ]);
-                    }
-                    else if(Xtrans && !Ytrans) {
-                        C_DGEMM('t','n',Z->params->rowtot[Hz],Z->params->coltot[Hz^GZ],
-                                numlinks[Hx],alpha,&(Xmat[Hx][0][0]),Z->params->rowtot[Hz],
-                                &(Ymat[Hy][0][0]),Z->params->coltot[Hz^GZ],1.0,
-                                &(Z->matrix[Hz][0][0]),Z->params->coltot[Hz^GZ]);
-                    }
-                    else if(!Xtrans && Ytrans) {
-                        C_DGEMM('n','t',Z->params->rowtot[Hz],Z->params->coltot[Hz^GZ],
-                                numlinks[Hx],alpha,&(Xmat[Hx][0][0]),numlinks[Hx],
-                                &(Ymat[Hy][0][0]),numlinks[Hx],1.0,
-                                &(Z->matrix[Hz][0][0]),Z->params->coltot[Hz^GZ]);
-                    }
-                    else {
-                        C_DGEMM('t','t',Z->params->rowtot[Hz],Z->params->coltot[Hz^GZ],
-                                numlinks[Hx],alpha,&(Xmat[Hx][0][0]),Z->params->rowtot[Hz],
-                                &(Ymat[Hy][0][0]),numlinks[Hx],1.0,
-                                &(Z->matrix[Hz][0][0]),Z->params->coltot[Hz^GZ]);
+                if (Z->params->rowtot[Hz] && Z->params->coltot[Hz ^ GZ] && numlinks[Hx]) {
+                    if (!Xtrans && !Ytrans) {
+                        C_DGEMM('n', 'n', Z->params->rowtot[Hz], Z->params->coltot[Hz ^ GZ], numlinks[Hx], alpha,
+                                &(Xmat[Hx][0][0]), numlinks[Hx], &(Ymat[Hy][0][0]), Z->params->coltot[Hz ^ GZ], 1.0,
+                                &(Z->matrix[Hz][0][0]), Z->params->coltot[Hz ^ GZ]);
+                    } else if (Xtrans && !Ytrans) {
+                        C_DGEMM('t', 'n', Z->params->rowtot[Hz], Z->params->coltot[Hz ^ GZ], numlinks[Hx], alpha,
+                                &(Xmat[Hx][0][0]), Z->params->rowtot[Hz], &(Ymat[Hy][0][0]), Z->params->coltot[Hz ^ GZ],
+                                1.0, &(Z->matrix[Hz][0][0]), Z->params->coltot[Hz ^ GZ]);
+                    } else if (!Xtrans && Ytrans) {
+                        C_DGEMM('n', 't', Z->params->rowtot[Hz], Z->params->coltot[Hz ^ GZ], numlinks[Hx], alpha,
+                                &(Xmat[Hx][0][0]), numlinks[Hx], &(Ymat[Hy][0][0]), numlinks[Hx], 1.0,
+                                &(Z->matrix[Hz][0][0]), Z->params->coltot[Hz ^ GZ]);
+                    } else {
+                        C_DGEMM('t', 't', Z->params->rowtot[Hz], Z->params->coltot[Hz ^ GZ], numlinks[Hx], alpha,
+                                &(Xmat[Hx][0][0]), Z->params->rowtot[Hz], &(Ymat[Hy][0][0]), numlinks[Hx], 1.0,
+                                &(Z->matrix[Hz][0][0]), Z->params->coltot[Hz ^ GZ]);
                     }
                 }
                 /*
@@ -301,20 +303,27 @@ int DPD::contract442(dpdbuf4 *X, dpdbuf4 *Y, dpdfile2 *Z, int target_X,
         */
             }
 
-        if(target_X == 0) buf4_mat_irrep_close(X, hxbuf);
-        else if(target_X == 1) trans4_mat_irrep_close(&Xt, hxbuf);
-        else if(target_X == 2) trans4_mat_irrep_close(&Xt, hxbuf);
-        else if(target_X == 3) buf4_mat_irrep_close(X, hxbuf);
+        if (target_X == 0)
+            buf4_mat_irrep_close(X, hxbuf);
+        else if (target_X == 1)
+            trans4_mat_irrep_close(&Xt, hxbuf);
+        else if (target_X == 2)
+            trans4_mat_irrep_close(&Xt, hxbuf);
+        else if (target_X == 3)
+            buf4_mat_irrep_close(X, hxbuf);
 
-        if(target_Y == 0) buf4_mat_irrep_close(Y, hybuf);
-        else if(target_Y == 1) trans4_mat_irrep_close(&Yt, hybuf);
-        else if(target_Y == 2) trans4_mat_irrep_close(&Yt, hybuf);
-        else if(target_Y == 3) buf4_mat_irrep_close(Y, hybuf);
+        if (target_Y == 0)
+            buf4_mat_irrep_close(Y, hybuf);
+        else if (target_Y == 1)
+            trans4_mat_irrep_close(&Yt, hybuf);
+        else if (target_Y == 2)
+            trans4_mat_irrep_close(&Yt, hybuf);
+        else if (target_Y == 3)
+            buf4_mat_irrep_close(Y, hybuf);
     }
 
-    if((target_X == 1) || (target_X == 2)) trans4_close(&Xt);
-    if((target_Y == 1) || (target_Y == 2)) trans4_close(&Yt);
-
+    if ((target_X == 1) || (target_X == 2)) trans4_close(&Xt);
+    if ((target_Y == 1) || (target_Y == 2)) trans4_close(&Yt);
 
     file2_mat_wrt(Z);
     file2_mat_close(Z);
@@ -322,6 +331,4 @@ int DPD::contract442(dpdbuf4 *X, dpdbuf4 *Y, dpdfile2 *Z, int target_X,
     return 0;
 }
 
-
-
-}
+}  // namespace psi

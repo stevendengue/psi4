@@ -3,23 +3,24 @@
 .. #
 .. # Psi4: an open-source quantum chemistry software package
 .. #
-.. # Copyright (c) 2007-2016 The Psi4 Developers.
+.. # Copyright (c) 2007-2019 The Psi4 Developers.
 .. #
 .. # The copyrights for code used from other parties are included in
 .. # the corresponding files.
 .. #
-.. # This program is free software; you can redistribute it and/or modify
-.. # it under the terms of the GNU General Public License as published by
-.. # the Free Software Foundation; either version 2 of the License, or
-.. # (at your option) any later version.
+.. # This file is part of Psi4.
 .. #
-.. # This program is distributed in the hope that it will be useful,
+.. # Psi4 is free software; you can redistribute it and/or modify
+.. # it under the terms of the GNU Lesser General Public License as published by
+.. # the Free Software Foundation, version 3.
+.. #
+.. # Psi4 is distributed in the hope that it will be useful,
 .. # but WITHOUT ANY WARRANTY; without even the implied warranty of
 .. # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-.. # GNU General Public License for more details.
+.. # GNU Lesser General Public License for more details.
 .. #
-.. # You should have received a copy of the GNU General Public License along
-.. # with this program; if not, write to the Free Software Foundation, Inc.,
+.. # You should have received a copy of the GNU Lesser General Public License along
+.. # with Psi4; if not, write to the Free Software Foundation, Inc.,
 .. # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 .. #
 .. # @END LICENSE
@@ -74,7 +75,7 @@ discussed that the orbital response equations generally have a singularity probl
 where spin-restricted orbitals become unstable to unrestriction. This singularity yields to extremely large or 
 small eigenvalues of the one-particle density matrix (OPDM). These abnormal eigenvalues may lead to unphysical 
 molecular properties such as vibrational frequencies. However, orbital-optimized MP2 (also MP3)
-will solve this N-representability problem by disregarding orbital response contribution of one-partical 
+will solve this N-representability problem by disregarding orbital response contribution of one-particle
 density matrix. 
 
 Although the performance of coupled-cluster singles and doubles (CCSD) and orbital-optimized 
@@ -413,7 +414,7 @@ preference to the default module, issue ``set qc_module occ``.
     +-------------------------+--------------------------------------------------------------+----------------------+----------------------+---------------------------+
     | ccsd(t)                 | CCSD(T)                                                      | ---                  | ---                  | |globals__cc_type| CONV   |
     +                         +--------------------------------------------------------------+----------------------+----------------------+---------------------------+
-    |                         | Density-Fitted CCSD(T)                                       | RHF                  | ---                  | |globals__cc_type| DF     |
+    |                         | Density-Fitted CCSD(T)                                       | RHF                  | RHF                  | |globals__cc_type| DF     |
     +                         +--------------------------------------------------------------+----------------------+----------------------+---------------------------+
     |                         | Cholesky-Decomposed CCSD(T)                                  | RHF                  | ---                  | |globals__cc_type| CD     |
     +-------------------------+--------------------------------------------------------------+----------------------+----------------------+---------------------------+

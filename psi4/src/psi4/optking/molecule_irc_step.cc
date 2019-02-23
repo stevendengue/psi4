@@ -3,23 +3,24 @@
  *
  * Psi4: an open-source quantum chemistry software package
  *
- * Copyright (c) 2007-2016 The Psi4 Developers.
+ * Copyright (c) 2007-2019 The Psi4 Developers.
  *
  * The copyrights for code used from other parties are included in
  * the corresponding files.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * This file is part of Psi4.
  *
- * This program is distributed in the hope that it will be useful,
+ * Psi4 is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * Psi4 is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with Psi4; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * @END LICENSE
@@ -177,7 +178,7 @@ void IRC_DATA::progress_report(opt::MOLECULE &mol)
 
 
 // See Gonzalez and Schlegel JCP 2154 (1989).
-void MOLECULE::irc_step(void)
+void MOLECULE::irc_step()
 {
   // Are we at the TS?  at_TS
   bool at_TS = !(p_irc_data->size());
@@ -193,18 +194,18 @@ void MOLECULE::irc_step(void)
   int Nintco = Ncoord();
   int Natom = g_natom();
   int Ncart = 3 * Natom;
-  bool answer = 1;
+  bool answer = true;
 
 
   int opt_iter = p_Opt_data->g_iteration() - 1;
   if(opt_iter > 2 && p_irc_data->in_min_range) {
-    if(    fabs(p_Opt_data->g_energy(opt_iter)     - p_Opt_data->g_energy(opt_iter - 2)) < 0.01e-03
-        && fabs(p_Opt_data->g_energy(opt_iter - 1) - p_Opt_data->g_energy(opt_iter - 3)) < 0.01e-03 ) {
-      p_irc_data->go = 0;
+    if(    std::fabs(p_Opt_data->g_energy(opt_iter)     - p_Opt_data->g_energy(opt_iter - 2)) < 0.01e-03
+        && std::fabs(p_Opt_data->g_energy(opt_iter - 1) - p_Opt_data->g_energy(opt_iter - 3)) < 0.01e-03 ) {
+      p_irc_data->go = false;
     }
   }
 
-    if (p_irc_data->sphere_step == 1) {
+    if (p_irc_data->sphere_step == 1 && p_irc_data->size() > 3) {
 
       double *u_f_q = init_array(Nintco);
       double *u_f_q_0 = init_array(Nintco);
@@ -215,24 +216,22 @@ void MOLECULE::irc_step(void)
       double u_f_q_dot = array_dot(u_f_q, u_f_q_0, Nintco);
 
       if(u_f_q_dot < -0.5) {
-        p_irc_data->in_min_range = 1;
+        p_irc_data->in_min_range = true;
       }
 
-      if(p_irc_data->size() > 3) {
-        if (u_f_q_dot < -0.7 ||
-            (
-              fabs(p_irc_data->g_line_dist(p_irc_data->size()-1) - p_irc_data->g_line_dist(p_irc_data->size()-2)) < s*10e-03
-            )
-           ) {
-          oprintf_out("\n@IRC\n@IRC Houston, we've found a minimum!\n@IRC\n");
+      if (u_f_q_dot < -0.7 ||
+          (
+            std::fabs(p_irc_data->g_line_dist(p_irc_data->size()-1) - p_irc_data->g_line_dist(p_irc_data->size()-2)) < s*10e-03
+          )
+         ) {
+        oprintf_out("\n@IRC\n@IRC Houston, we've found a minimum!\n@IRC\n");
 
-          if(Opt_params.IRC_stop == OPT_PARAMS::ASK) {
-            cout << "Would you like to proceed? (1=yes, 0=no):";
-            cin >> answer;
-          }
-          if(Opt_params.IRC_stop == OPT_PARAMS::STOP || !answer) {
-            p_irc_data->go = 0;
-          }
+        if(Opt_params.IRC_stop == OPT_PARAMS::ASK) {
+          std::cout << "Would you like to proceed? (1=yes, 0=no):";
+          std::cin >> answer;
+        }
+        if(Opt_params.IRC_stop == OPT_PARAMS::STOP || !answer) {
+          p_irc_data->go = false;
         }
       }
 
@@ -241,10 +240,10 @@ void MOLECULE::irc_step(void)
     }
 
   //The G matrix, its square root, and its inverse square root
-  double **G         = compute_G(1);                          //G = BUB^t
+  double **G         = compute_G(true);                          //G = BUB^t
 
   double **rootG_reg = matrix_return_copy(G, Nintco, Nintco); //G^1/2
-  matrix_root(rootG_reg, Nintco, 0);
+  matrix_root(rootG_reg, Nintco, false);
 
   if (Opt_params.print_lvl > 2) {
     oprintf_out( "\n@IRC rootG matrix:\n");
@@ -252,7 +251,7 @@ void MOLECULE::irc_step(void)
   }
 
   double **rootG_inv = matrix_return_copy(G, Nintco, Nintco); //G^-1/2
-  matrix_root(rootG_inv, Nintco, 1);
+  matrix_root(rootG_inv, Nintco, true);
 
   if (Opt_params.print_lvl > 2) {
     oprintf_out( "@IRC G matrix:\n");
@@ -264,9 +263,9 @@ void MOLECULE::irc_step(void)
   double **H_m = init_matrix(Nintco, Nintco);
   double **T = init_matrix(Nintco, Nintco);
   // T = HG^1/2
-  opt_matrix_mult(H, 0, rootG_reg, 0, T, 0, Nintco, Nintco, Nintco, 0);
+  opt_matrix_mult(H, false, rootG_reg, false, T, false, Nintco, Nintco, Nintco, false);
   // H_m = (G^1/2)H(G^1/2) = (G^1/2)T
-  opt_matrix_mult(rootG_reg, 0, T, 0, H_m, 0, Nintco, Nintco, Nintco, 0);
+  opt_matrix_mult(rootG_reg, false, T, false, H_m, false, Nintco, Nintco, Nintco, false);
   free_matrix(T);
 
   if (Opt_params.print_lvl > 2) {
@@ -498,8 +497,8 @@ void MOLECULE::irc_step(void)
   for(int i=0; i<Nintco; i++)
     g_m0[i] = array_dot(rootG_reg[i], g_0, Nintco);
 
-  if(0 && p_irc_data->sphere_step > 1) {
-    if(0)
+  if(false && p_irc_data->sphere_step > 1) {
+    if(false)
       //GS_interpolation(p_m, p_m0, g_m, g_m0, s, Nintco);
       GS_interpolation(p_m, p_m0, g_m, g_m0, Nintco);
     else
@@ -550,13 +549,13 @@ void MOLECULE::irc_step(void)
   lagrangian = lag_function(lambda, df, h, p_h, g_h, Nintco, s);
   while(lagrangian*old_lagrangian > 0 && coarse_iter < 1000)
   {
-    if(lagrangian < 0 && fabs(lagrangian) < fabs(lb_lagrangian))
+    if(lagrangian < 0 && std::fabs(lagrangian) < std::fabs(lb_lagrangian))
     {
       lb_lagrangian = lagrangian;
       lb_lambda = lambda;
     }
 
-    if(lagrangian > 0 && fabs(lagrangian) < fabs(ub_lagrangian))
+    if(lagrangian > 0 && std::fabs(lagrangian) < std::fabs(ub_lagrangian))
     {
       ub_lagrangian = lagrangian;
       ub_lambda = lambda;
@@ -570,19 +569,19 @@ void MOLECULE::irc_step(void)
 
   oprintf_out( "\n    Determining lagrangian multiplier for constrained minimization.\n");
 
-  while (fabs(lambda - old_lambda) > 1e-16)
+  while (std::fabs(lambda - old_lambda) > 1e-16)
   {
     old_lagrangian = lagrangian;
     lagrangian = lag_function(lambda, df, h, p_h, g_h, Nintco, s);
     h_f = -df[0] / df[1];
 
-    if(lagrangian < 0 && fabs(lagrangian) < fabs(lb_lagrangian))
+    if(lagrangian < 0 && std::fabs(lagrangian) < std::fabs(lb_lagrangian))
     {
       lb_lagrangian = lagrangian;
       lb_lambda = lambda;
     }
 
-    if(lagrangian > 0 && fabs(lagrangian) < fabs(ub_lagrangian))
+    if(lagrangian > 0 && std::fabs(lagrangian) < std::fabs(ub_lagrangian))
     {
       ub_lagrangian = lagrangian;
       ub_lambda = lambda;
@@ -639,18 +638,18 @@ void MOLECULE::irc_step(void)
   // Compute (H_m - lambda * I)^(-1)
   for(int i=0; i<Nintco; i++)
     H_m[i][i] -= lambda;
-  double **H_m_lag_inv = symm_matrix_inv(H_m, Nintco, 1);
+  double **H_m_lag_inv = symm_matrix_inv(H_m, Nintco, true);
 
   double *g_lag_p = init_array(Nintco);
   for(int i=0; i<Nintco; i++)
     g_lag_p[i] = lambda * p_m[i] - g_m[i];
 
-  opt_matrix_mult(H_m_lag_inv, 0, &g_lag_p, 1, &dq_m, 1, Nintco, Nintco, 1, 0);
+  opt_matrix_mult(H_m_lag_inv, false, &g_lag_p, true, &dq_m, true, Nintco, Nintco, 1, false);
 
   free_matrix(H_m_lag_inv);
 
 //5. find dq ( = (G^1/2)dq_m) and do displacements
-  opt_matrix_mult(rootG_reg, 0, &dq_m, 1, &dq, 1, Nintco, Nintco, 1, 0);
+  opt_matrix_mult(rootG_reg, false, &dq_m, true, &dq, true, Nintco, Nintco, 1, false);
 
 
   // Do displacements for each fragment separately.
@@ -708,8 +707,8 @@ void MOLECULE::irc_step(void)
 //gradient at the converged point, and the vector dq_m, connecting the starting point and the new
 //point converged on the hypersphere
   double u_dqm_pm = array_dot(u_dq_m, u_p_m, Nintco);
-  double beta = acos( fabs( u_dqm_pm ) );
-  p_irc_data->arc_length = fabs( s * beta / tan( beta ) );
+  double beta = acos( std::fabs( u_dqm_pm ) );
+  p_irc_data->arc_length = std::fabs( s * beta / tan( beta ) );
   p_irc_data->line_length = sqrt( array_dot(new_dq, new_dq, Nintco) );
 
   free_array(u_dq_m);
@@ -784,11 +783,11 @@ void MOLECULE::irc_step(void)
       }
       oprintf_out("@IRC %3d   %8d      %16.8f %10.2e %1s  %10.2e %1s  %10.2e %1s  %10.2e %1s  %10.2e %1s  ~\n",
           point, p_irc_data->sphere_step, E,
-          DE, (Opt_params.i_max_DE ? ((fabs(DE) < Opt_params.conv_max_DE) ? "*" : "") : "o"),
-          max_force, (Opt_params.i_max_force ? ((fabs(max_force) < Opt_params.conv_max_force) ? "*" : "") : "o"),
-          rms_force, (Opt_params.i_rms_force ? ((fabs(rms_force) < Opt_params.conv_rms_force) ? "*" : "") : "o"),
-          max_disp, (Opt_params.i_max_disp ? ((fabs(max_disp) < Opt_params.conv_max_disp) ? "*" : "") : "o"),
-          rms_disp, (Opt_params.i_rms_disp ? ((fabs(rms_disp) < Opt_params.conv_rms_disp) ? "*" : "") : "o"));
+          DE, (Opt_params.i_max_DE ? ((std::fabs(DE) < Opt_params.conv_max_DE) ? "*" : "") : "o"),
+          max_force, (Opt_params.i_max_force ? ((std::fabs(max_force) < Opt_params.conv_max_force) ? "*" : "") : "o"),
+          rms_force, (Opt_params.i_rms_force ? ((std::fabs(rms_force) < Opt_params.conv_rms_force) ? "*" : "") : "o"),
+          max_disp, (Opt_params.i_max_disp ? ((std::fabs(max_disp) < Opt_params.conv_max_disp) ? "*" : "") : "o"),
+          rms_disp, (Opt_params.i_rms_disp ? ((std::fabs(rms_disp) < Opt_params.conv_rms_disp) ? "*" : "") : "o"));
       oprintf_out("     -----------------------------------------------------------------------------------------------------------\n\n");
     }
   }
@@ -845,11 +844,11 @@ double *lowest_evector(double **H, int Nintco)
   // find largest element
   double max_element = -1;
   for(int i=0; i<Nintco; i++)
-    if( fabs(V[0][i]) > fabs(max_element) )
+    if( std::fabs(V[0][i]) > std::fabs(max_element) )
       max_element = V[0][i];
 
   int sign;
-  (max_element == fabs(max_element)) ? sign = 1 : sign = -1;
+  (max_element == std::fabs(max_element)) ? sign = 1 : sign = -1;
 
   double *min_evector = init_array(Nintco);
   for(int i=0; i<Nintco; i++)

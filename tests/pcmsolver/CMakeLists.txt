@@ -1,3 +1,5 @@
-add_subdirectory(pcm-dft)
-add_subdirectory(pcm-dipole)
-add_subdirectory(pcm-scf)
+add_subdirectory(dft)
+add_subdirectory(dipole)
+add_subdirectory(scf)
+add_subdirectory(opt-fd)
+add_subdirectory(ccsd-pte)

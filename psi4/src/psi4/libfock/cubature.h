@@ -3,23 +3,24 @@
  *
  * Psi4: an open-source quantum chemistry software package
  *
- * Copyright (c) 2007-2016 The Psi4 Developers.
+ * Copyright (c) 2007-2019 The Psi4 Developers.
  *
  * The copyrights for code used from other parties are included in
  * the corresponding files.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * This file is part of Psi4.
  *
- * This program is distributed in the hope that it will be useful,
+ * Psi4 is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * Psi4 is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with Psi4; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * @END LICENSE
@@ -29,21 +30,24 @@
 #define libmints_cubature_H
 
 #include "psi4/psi4-dec.h"
+#include "psi4/pragma.h"
 
 #include "psi4/libmints/vector3.h"
+#include "psi4/libmints/typedefs.h"
+
+#include <map>
+#include <vector>
 
 namespace psi {
 
-class PSIO;
 class BasisSet;
 class Matrix;
 class Vector;
-class IntVector;
-class Vector3;
 class BasisExtents;
 class BlockOPoints;
 class RadialGrid;
 class SphericalGrid;
+class Options;
 
 // This is an auxiliary structure used internally by the grid-builder class.
 // Apparently, for performance reasons, it is not good for the final molecular grid
@@ -53,12 +57,11 @@ class SphericalGrid;
 // great way to get a 1000x slowdown. What an incredible smell you've discovered!
 //
 struct MassPoint {
-    double x,y,z,w;
+    double x, y, z, w;
 };
 
-
 class MolecularGrid {
-protected:
+   protected:
     int debug_;
 
     /// The molecule this grid is built on
@@ -72,6 +75,8 @@ protected:
     int max_points_;
     /// Maximum number of functions in a block
     int max_functions_;
+    // The total collocation size
+    size_t collocation_size_;
     /// Full x points.
     double* x_;
     /// Full y points.
@@ -105,21 +110,23 @@ protected:
     void remove_distant_points(double Rcut);
     void block(int max_points, int min_points, double max_radius);
 
-public:
+   public:
     struct MolecularGridOptions {
         double bs_radius_alpha;
         double pruning_alpha;
-        short radscheme;   // Effectively an enumeration
+        short radscheme;  // Effectively an enumeration
         short prunescheme;
         short nucscheme;
-        short namedGrid; // -1 = None, 0 = SG-0, 1 = SG-1
+        short namedGrid;  // -1 = None, 0 = SG-0, 1 = SG-1
         int nradpts;
         int nangpts;
     };
-protected:
+
+   protected:
     /// A copy of the options used, for printing purposes.
     MolecularGridOptions options_;
-public:
+
+   public:
     MolecularGrid(std::shared_ptr<Molecule> molecule);
     virtual ~MolecularGrid();
 
@@ -127,20 +134,22 @@ public:
     void buildGridFromOptions(MolecularGridOptions const& opt);
     /// Build the grid
     void buildGridFromOptions(MolecularGridOptions const& opt,
-        const std::vector<std::vector<double> >& rs,  // Radial nodes,     per atom
-        const std::vector<std::vector<double> >& ws,  // Radial weights,   per atom
-        const std::vector<std::vector<int> >&    Ls); // Spherical orders, per atom
+                              const std::vector<std::vector<double> >& rs,  // Radial nodes,     per atom
+                              const std::vector<std::vector<double> >& ws,  // Radial weights,   per atom
+                              const std::vector<std::vector<int> >& Ls);    // Spherical orders, per atom
 
     /// Print information about the grid
-    void print(std::string OutFileRMR = "outfile", int print = 2) const;
-    void print_details(std::string OutFileRMR = "outfile", int print = 2) const;
+    void print(std::string out_fname = "outfile", int print = 2) const;
+    void print_details(std::string out_fname = "outfile", int print = 2) const;
 
     /// Orientation matrix
     std::shared_ptr<Matrix> orientation() const { return orientation_; }
     /// Radial grids, per atom
     const std::vector<std::shared_ptr<RadialGrid> >& radial_grids() const { return radial_grids_; }
     /// Spherical grids, per atom and radial point
-    const std::vector<std::vector<std::shared_ptr<SphericalGrid> > >& spherical_grids() const { return spherical_grids_; }
+    const std::vector<std::vector<std::shared_ptr<SphericalGrid> > >& spherical_grids() const {
+        return spherical_grids_;
+    }
     /// index_[fast_index] = slow_index. You do not own this
     int* index() const { return index_; }
 
@@ -150,6 +159,8 @@ public:
     int max_points() const { return max_points_; }
     /// Maximum number of funtions in a block
     int max_functions() const { return max_functions_; }
+    /// Total collocation size of all blocks
+    size_t collocation_size() { return collocation_size_; }
 
     /// The x points. You do not own this
     double* x() const { return x_; }
@@ -169,8 +180,7 @@ public:
 };
 
 class PseudospectralGrid : public MolecularGrid {
-
-protected:
+   protected:
     /// The primary basis
     std::shared_ptr<BasisSet> primary_;
     /// The filename used to optionally build the grid
@@ -181,44 +191,31 @@ protected:
 
     /// Master builder methods
     void buildGridFromOptions();
-    void buildGridFromFile();
 
-public:
-
+   public:
     /// Constructor to use for autogeneration
-    PseudospectralGrid(std::shared_ptr<Molecule> molecule,
-                       std::shared_ptr<BasisSet> primary,
-                       Options& options);
-    /// Construtor to use for semiautomatic generation with grid file
-    PseudospectralGrid(std::shared_ptr<Molecule> molecule,
-                       std::shared_ptr<BasisSet> primary,
-                       const std::string& filename,
-                       Options& options);
-    virtual ~PseudospectralGrid();
-
+    PseudospectralGrid(std::shared_ptr<Molecule> molecule, std::shared_ptr<BasisSet> primary, Options& options);
+    ~PseudospectralGrid() override;
 };
 
 class DFTGrid : public MolecularGrid {
-
-protected:
+   protected:
     /// The primary basis
     std::shared_ptr<BasisSet> primary_;
     /// Master builder methods
-    void buildGridFromOptions();
+    void buildGridFromOptions(std::map<std::string, int> int_opts_map, std::map<std::string, std::string> opts_map);
     /// The Options object
     Options& options_;
 
-public:
-    DFTGrid(std::shared_ptr<Molecule> molecule,
-            std::shared_ptr<BasisSet> primary,
-            Options& options);
-    virtual ~DFTGrid();
+   public:
+    DFTGrid(std::shared_ptr<Molecule> molecule, std::shared_ptr<BasisSet> primary, Options& options);
+    DFTGrid(std::shared_ptr<Molecule> molecule, std::shared_ptr<BasisSet> primary,
+            std::map<std::string, int> int_opts_map, std::map<std::string, std::string> opts_map, Options& options);
+    ~DFTGrid() override;
 };
 
 class RadialGrid {
-
-protected:
-
+   protected:
     /// Scheme
     std::string scheme_;
     /// Number of points in radial grid
@@ -240,7 +237,8 @@ protected:
 
     /// Protected constructor
     RadialGrid();
-public:
+
+   public:
     // ==> Initializers <== //
 
     /// Destructor
@@ -249,7 +247,8 @@ public:
     /// Master build routine
     static std::shared_ptr<RadialGrid> build(const std::string& scheme, int npoints, double alpha);
     /// Hack build routine (TODO: Remove ASAP)
-    static std::shared_ptr<RadialGrid> build(const std::string& scheme, int npoints, double* r, double* wr, double alpha);
+    static std::shared_ptr<RadialGrid> build(const std::string& scheme, int npoints, double* r, double* wr,
+                                             double alpha);
 
     // ==> Accessors <== //
 
@@ -265,13 +264,11 @@ public:
     double* w() const { return w_; }
 
     /// Reflection
-    void print(std::string OutFileRMR = "outfile", int level = 1) const;
+    void print(std::string out_fname = "outfile", int level = 1) const;
 };
 
 class SphericalGrid {
-
-protected:
-
+   protected:
     /// Scheme
     std::string scheme_;
     /// Number of points in radial grid
@@ -294,18 +291,10 @@ protected:
 
     // ==> Unique Lebedev Grids (statically stored) <== //
 
-    /// Unique Lebedev grids, accessed by number of points
-    static std::map<int, std::shared_ptr<SphericalGrid> > lebedev_npoints_;
-    /// Unique Lebedev grids, accessed by order (integrating to 2 * order + 1)
-    static std::map<int, std::shared_ptr<SphericalGrid> > lebedev_orders_;
     /// Grid npoints to order map
     static std::map<int, int> lebedev_mapping_;
     /// Initialize the above arrays with the unique Lebedev grids
     static void initialize_lebedev();
-    /// Build a Lebedev grid given a valid number of points
-    static std::shared_ptr<SphericalGrid> build_lebedev(int npoints);
-    /// Perform Lebedev grid reccurence
-    static int lebedev_reccurence(int type, int start, double a, double b, double v, SphericalGrid* leb);
     /// Print valid Lebedev grids and error out (throws)
     static void lebedev_error();
 
@@ -316,16 +305,14 @@ protected:
 
     /// Protected constructor
     SphericalGrid();
-public:
+
+   public:
     // ==> Initializers <== //
 
     /// Destructor
     virtual ~SphericalGrid();
 
     /// Master build routines
-    static std::shared_ptr<SphericalGrid> build_npoints(const std::string& scheme, int npoints);
-    static std::shared_ptr<SphericalGrid> build_order(const std::string& scheme, int order);
-    /// Hack build routine (TODO: Remove ASAP)
     static std::shared_ptr<SphericalGrid> build(const std::string& scheme, int npoints, const MassPoint* points);
 
     // ==> Accessors <== //
@@ -351,25 +338,22 @@ public:
     double* theta() const { return theta_; }
 
     /// Reflection
-    void print(std::string OutFileRMR = "outfile", int level = 1) const;
-
-    // ==> Unique Lebedev Grids (statically stored) <== //
-
-    /// Unique Lebedev grids, accessed by number of points
-    static std::map<int, std::shared_ptr<SphericalGrid> >& lebedev_npoints();
-    /// Unique Lebedev grids, accessed by order (integrating to 2 * order + 1)
-    static std::map<int, std::shared_ptr<SphericalGrid> >& lebedev_orders();
-    /// Next largest valid Lebedev grid npoints, or -1 if guess is larger than biggest Lebedev grid
-    static int lebedev_next_npoints(int npoints_guess);
-    /// Next largest valid Lebedev grid order, or -1 if guess is larger than biggest Lebedev grid
-    static int lebedev_next_order(int order_guess);
+    void print(std::string out_fname = "outfile", int level = 1) const;
 };
 
 class BlockOPoints {
-
-protected:
+   protected:
     /// number of points in this block
-    int npoints_;
+    size_t index_;
+    size_t npoints_;
+    size_t local_nbf_;
+
+    /// Data holders if requested
+    SharedVector xvec_;
+    SharedVector yvec_;
+    SharedVector zvec_;
+    SharedVector wvec_;
+
     /// Pointer to x (does not own)
     double* x_;
     /// Pointer to y (does not own)
@@ -395,18 +379,23 @@ protected:
     /// Compute bounding sphere
     void bound();
 
-public:
-    BlockOPoints(int npoints, double* x, double* y, double* z, double* w,
-        std::shared_ptr<BasisExtents> extents);
+   public:
+    BlockOPoints(SharedVector x, SharedVector y, SharedVector z, SharedVector w, std::shared_ptr<BasisExtents> extents);
+    BlockOPoints(size_t index, size_t npoints, double* x, double* y, double* z, double* w,
+                 std::shared_ptr<BasisExtents> extents);
     virtual ~BlockOPoints();
 
     /// Refresh populations (if extents_->delta() changes)
     void refresh() { populate(); }
 
     /// Number of grid points
-    int npoints() const { return npoints_; }
+    size_t npoints() const { return npoints_; }
+    /// Number of basis functions in the block
+    size_t local_nbf() const { return local_nbf_; }
+    /// Index of the currently owned block
+    size_t index() const { return index_; }
     /// Print a trace of this BlockOPoints
-    void print(std::string OutFileRMR = "outfile", int print = 2);
+    void print(std::string out_fname = "outfile", int print = 2);
 
     /// The x points. You do not own this
     double* x() const { return x_; }
@@ -424,8 +413,7 @@ public:
 };
 
 class BasisExtents {
-
-protected:
+   protected:
     /// Basis this corresponds to
     std::shared_ptr<BasisSet> primary_;
     /// Cutoff value for basis values
@@ -437,14 +425,18 @@ protected:
 
     /// Recompute and shell_extents_
     void computeExtents();
-public:
+
+   public:
     BasisExtents(std::shared_ptr<BasisSet> primary, double delta);
     virtual ~BasisExtents();
 
     /// Print a trace of these extents
-    void print(std::string OutFileRMR = "outfile");
+    void print(std::string out_fname = "outfile");
     /// Reset delta and recompute extents
-    void set_delta(double delta) { delta_ = delta; computeExtents(); }
+    void set_delta(double delta) {
+        delta_ = delta;
+        computeExtents();
+    }
 
     /// The cutoff value
     double delta() const { return delta_; }
@@ -455,6 +447,5 @@ public:
     /// Maximum spatial extent over all atoms
     double maxR() const { return maxR_; }
 };
-
 }
 #endif

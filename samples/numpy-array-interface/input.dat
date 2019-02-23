@@ -17,7 +17,6 @@ np_mat2 = mat2.to_array()
 np_mat1_ex = np.array(mat1)
 
 for h in range(mat2.nirrep()):
-# Explicit should fail
 
 np_mat1_view = mat1.to_array(copy=False)
 np_mat2_view = mat2.to_array(copy=False)
@@ -52,6 +51,9 @@ vec2.set(0, 0, 13)
 
 
 
+
+dim1_match = list(dim1) == list(dim1.to_tuple())
+dim2_match = list(dim2) == list(dim2.to_tuple())
 
 
 
@@ -106,5 +108,42 @@ np.savez("compound", **fkeys)
 read_irreped_mat = psi4.Matrix.np_read("compound", prefix='mat ')
 
 read_irreped_vec = psi4.Vector.np_read("compound", prefix='vec ')
+
+
+# Make sure our pointers are being tracked correctly
+tmp = []
+for n in range(1000):
+    tmp.append(np.asarray(Matrix(3, 3)))
+residual = sum(np.sum(x) for x in tmp)
+
+
+tmp = []
+for n in range(1000):
+    view = Matrix(3, 3).np
+    view[:] = 1
+    tmp.append(view)
+residual = sum(np.sum(x) for x in tmp)
+
+
+
+# Try out JSON serialization
+json_data = irreped_vec.to_serial()
+json_vec = psi4.Vector.from_serial(json_data)
+
+json_data = irreped_mat.to_serial()
+json_vec = psi4.Matrix.from_serial(json_data)
+
+# Test out chain_dot
+A = psi4.core.Matrix.from_array(np.random.rand(4, 3))
+B = psi4.core.Matrix.from_array(np.random.rand(3, 5))
+C = psi4.core.Matrix.from_array(np.random.rand(5, 5))
+D = psi4.core.Matrix.from_array(np.random.rand(5, 2))
+
+### Make sure chain dot works
+numpy_result = np.dot(A, B).dot(C).dot(D)
+psi_result = psi4.core.Matrix.chain_dot(A, B, C, D)
+
+numpy_result = np.dot(A, B).dot(C.np.T).dot(D)
+psi_result = psi4.core.Matrix.chain_dot(A, B, C, D, trans=[False, False, True, False])
 
 

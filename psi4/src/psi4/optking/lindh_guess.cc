@@ -3,23 +3,24 @@
  *
  * Psi4: an open-source quantum chemistry software package
  *
- * Copyright (c) 2007-2016 The Psi4 Developers.
+ * Copyright (c) 2007-2019 The Psi4 Developers.
  *
  * The copyrights for code used from other parties are included in
  * the corresponding files.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * This file is part of Psi4.
  *
- * This program is distributed in the hope that it will be useful,
+ * Psi4 is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * Psi4 is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with Psi4; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * @END LICENSE
@@ -74,14 +75,14 @@ inline double alpha_table(int perA, int perB);
 using namespace v3d;
 
 // Returns cartesian Lindh guess Hessian for whole system
-double **MOLECULE::Lindh_guess(void) const {
+double **MOLECULE::Lindh_guess() const {
 
   // Build one oprint_matrix_out( fragment that contains ALL the atoms.
   int natom = g_natom();
   double **coord_xyz = g_geom_2D();
   double *atomic_numbers = g_Z();
 
-  FRAG * frag = new FRAG(natom, atomic_numbers, coord_xyz);
+  auto * frag = new FRAG(natom, atomic_numbers, coord_xyz);
 
   double **g = g_grad_2D();
   frag->set_grad(g);
@@ -95,7 +96,7 @@ double **MOLECULE::Lindh_guess(void) const {
 
 
 // Build cartesian hessian according to model in  Lindh paper.
-double ** FRAG::Lindh_guess(void) {
+double ** FRAG::Lindh_guess() {
 
   // Build distance matrix
   double **R = init_matrix(natom, natom);
@@ -242,8 +243,8 @@ in this set of internals. */
                 double val1=0, val2=0;
                 v3d_angle(geom[i], geom[j], geom[k], val1);
                 v3d_angle(geom[j], geom[k], geom[l], val2);
-                val1 = fabs(val1);
-                val2 = fabs(val2);
+                val1 = std::fabs(val1);
+                val2 = std::fabs(val2);
                 if (val1 > .02*_pi && val2 > .02*_pi && val1 <(_pi-.02) && val2 <(_pi-.02)) {
                   TORS *one_tors = new TORS(i, j, k, l);
                   coords.simples.push_back(one_tors);
@@ -262,7 +263,7 @@ in this set of internals. */
   //oprint_array_out(g_x,3*natom);
 
   double *temp_arr = init_array(Nintco);
-  opt_matrix_mult(B, 0, &g_x, 1, &temp_arr, 1, Nintco, 3*natom, 1, 0);
+  opt_matrix_mult(B, false, &g_x, true, &temp_arr, true, Nintco, 3*natom, 1, false);
   free_array(g_x);
 
   double **G = init_matrix(Nintco, Nintco);
@@ -271,11 +272,11 @@ in this set of internals. */
       for (int j=0; j<Nintco; ++j)
         G[i][j] += B[i][k] * B[j][k];
   free_matrix(B);
-  double **G_inv = symm_matrix_inv(G, Nintco, 1);
+  double **G_inv = symm_matrix_inv(G, Nintco, true);
   free_matrix(G);
 
   double *g_q = init_array(Nintco);
-  opt_matrix_mult(G_inv, 0, &temp_arr, 1, &g_q, 1, Nintco, Nintco, 1, 0);
+  opt_matrix_mult(G_inv, false, &temp_arr, true, &g_q, true, Nintco, Nintco, 1, false);
   free_matrix(G_inv);
   free_array(temp_arr);
   // Done computing g_q

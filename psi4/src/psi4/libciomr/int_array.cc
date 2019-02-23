@@ -3,23 +3,24 @@
  *
  * Psi4: an open-source quantum chemistry software package
  *
- * Copyright (c) 2007-2016 The Psi4 Developers.
+ * Copyright (c) 2007-2019 The Psi4 Developers.
  *
  * The copyrights for code used from other parties are included in
  * the corresponding files.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * This file is part of Psi4.
  *
- * This program is distributed in the hope that it will be useful,
+ * Psi4 is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * Psi4 is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with Psi4; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * @END LICENSE
@@ -38,9 +39,9 @@
 #include "psi4/psifiles.h"
 #include <cstdio>
 #include <cstdlib>
-#include <strings.h>
+#include <cstring>
 #include "psi4/psi4-dec.h"
-#include "psi4/libparallel/ParallelPrinter.h"
+#include "psi4/libpsi4util/PsiOutStream.h"
 namespace psi {
 
 /*!
@@ -58,19 +59,17 @@ namespace psi {
 ** C. David Sherrill
 ** \ingroup CIOMR
 */
-int * init_int_array(int size)
-{
-  int *array;
+PSI_API int *init_int_array(int size) {
+    int *array;
 
-  if ((array = (int *) malloc(sizeof(int)*size))==NULL) {
-    outfile->Printf("init_array:  trouble allocating memory \n");
-    outfile->Printf("size = %d\n",size);
-    exit(PSI_RETURN_FAILURE);
-  }
-  bzero(array,sizeof(int)*size);
-  return(array);
+    if ((array = (int *)malloc(sizeof(int) * size)) == nullptr) {
+        outfile->Printf("init_array:  trouble allocating memory \n");
+        outfile->Printf("size = %d\n", size);
+        exit(PSI_RETURN_FAILURE);
+    }
+    memset(array, 0, sizeof(int) * size);
+    return (array);
 }
-
 
 /*!
 ** zero_int_array()
@@ -83,11 +82,7 @@ int * init_int_array(int size)
 **
 ** \ingroup CIOMR
 */
-void zero_int_array(int *a, int size)
-{
-   bzero(a,sizeof(int)*size);
-}
-
+void zero_int_array(int *a, int size) { memset(a, 0, sizeof(int) * size); }
 
 /*!
 ** init_int_matrix():
@@ -102,30 +97,28 @@ void zero_int_array(int *a, int size)
 **
 ** \ingroup CIOMR
 */
-int **init_int_matrix(int rows, int cols)
-{
-   int **array=NULL;
-   int i;
+PSI_API int **init_int_matrix(int rows, int cols) {
+    int **array = nullptr;
+    int i;
 
-   if ((array = (int **) malloc(sizeof(int *)*rows))==NULL) {
-     outfile->Printf("init_int_matrix: trouble allocating memory \n");
-     outfile->Printf("rows = %d\n", rows);
-     exit(PSI_RETURN_FAILURE);
-   }
+    if ((array = (int **)malloc(sizeof(int *) * rows)) == nullptr) {
+        outfile->Printf("init_int_matrix: trouble allocating memory \n");
+        outfile->Printf("rows = %d\n", rows);
+        exit(PSI_RETURN_FAILURE);
+    }
 
-   if ((array[0] = (int *) malloc (sizeof(int)*cols*rows))==NULL) {
-     outfile->Printf("init_int_matrix: trouble allocating memory \n");
-     outfile->Printf("rows = %d, cols = %d", rows, cols);
-     exit(PSI_RETURN_FAILURE) ;
-   }
-   for (i=1; i<rows; i++) {
-     array[i] = array[i-1] + cols;
-   }
-   bzero(array[0], sizeof(int)*cols*rows);
+    if ((array[0] = (int *)malloc(sizeof(int) * cols * rows)) == nullptr) {
+        outfile->Printf("init_int_matrix: trouble allocating memory \n");
+        outfile->Printf("rows = %d, cols = %d", rows, cols);
+        exit(PSI_RETURN_FAILURE);
+    }
+    for (i = 1; i < rows; i++) {
+        array[i] = array[i - 1] + cols;
+    }
+    memset(array[0], 0, sizeof(int) * cols * rows);
 
-   return array;
+    return array;
 }
-
 
 /*!
 ** free_int_matrix():
@@ -135,12 +128,10 @@ int **init_int_matrix(int rows, int cols)
 **
 ** \ingroup CIOMR
 */
-void free_int_matrix(int **array)
-{
-  free(array[0]);
-  free(array);
+void PSI_API free_int_matrix(int **array) {
+    free(array[0]);
+    free(array);
 }
-
 
 /*!
 ** zero_int_matrix():
@@ -155,11 +146,7 @@ void free_int_matrix(int **array)
 **
 ** \ingroup CIOMR
 */
-void zero_int_matrix(int **array, int rows, int cols)
-{
-  zero_int_array(array[0], rows*cols);
-}
-
+void zero_int_matrix(int **array, int rows, int cols) { zero_int_array(array[0], rows * cols); }
 
 /*!
 ** print_int_mat():
@@ -175,35 +162,34 @@ void zero_int_matrix(int **array, int rows, int cols)
 **
 ** \ingroup CIOMR
 */
-void print_int_mat(int **a, int m, int n, std::string out)
-{
-   std::shared_ptr<psi::PsiOutStream> printer=(out=="outfile"?outfile:
-         std::shared_ptr<OutFile>(new OutFile(out)));
-   int ii,jj,kk,nn,ll;
-  int i,j;
+void print_int_mat(int **a, int m, int n, std::string out) {
+    std::shared_ptr<psi::PsiOutStream> printer = (out == "outfile" ? outfile : std::make_shared<PsiOutStream>(out));
+    int ii, jj, kk, nn, ll;
+    int i, j;
 
-  ii=0;jj=0;
+    ii = 0;
+    jj = 0;
 L200:
-  ii++;
-  jj++;
-  kk=10*jj;
-  nn=n;
-  if (nn > kk) nn=kk;
-  ll = 2*(nn-ii+1)+1;
-  printer->Printf("\n   ");
-  for (i=ii; i <= nn; i++) printer->Printf("   %5d",i);
-  printer->Printf("\n");
-  for (i=0; i < m; i++) {
-    printer->Printf("\n%5d",i+1);
-    for (j=ii-1; j < nn; j++) {
-      printer->Printf("%8d",a[i][j]);
+    ii++;
+    jj++;
+    kk = 10 * jj;
+    nn = n;
+    if (nn > kk) nn = kk;
+    ll = 2 * (nn - ii + 1) + 1;
+    printer->Printf("\n   ");
+    for (i = ii; i <= nn; i++) printer->Printf("   %5d", i);
+    printer->Printf("\n");
+    for (i = 0; i < m; i++) {
+        printer->Printf("\n%5d", i + 1);
+        for (j = ii - 1; j < nn; j++) {
+            printer->Printf("%8d", a[i][j]);
+        }
     }
-  }
-  printer->Printf("\n");
-  if (n <= kk) {
-    return;
-  }
-  ii=kk; goto L200;
+    printer->Printf("\n");
+    if (n <= kk) {
+        return;
+    }
+    ii = kk;
+    goto L200;
 }
-
 }

@@ -3,23 +3,24 @@
  *
  * Psi4: an open-source quantum chemistry software package
  *
- * Copyright (c) 2007-2016 The Psi4 Developers.
+ * Copyright (c) 2007-2019 The Psi4 Developers.
  *
  * The copyrights for code used from other parties are included in
  * the corresponding files.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * This file is part of Psi4.
  *
- * This program is distributed in the hope that it will be useful,
+ * Psi4 is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * Psi4 is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with Psi4; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * @END LICENSE
@@ -52,13 +53,14 @@ inline double DE_rfo_energy(double rfo_t, double rfo_g, double rfo_h) {
   return (rfo_t * rfo_g + 0.5 * rfo_t * rfo_t * rfo_h)/(1 + rfo_t*rfo_t);
 }
 
-void MOLECULE::prfo_step(void) {
+void MOLECULE::prfo_step() {
   double **Horig = p_Opt_data->g_H_pointer();
   double *fq = p_Opt_data->g_forces_pointer();
   double *dq = p_Opt_data->g_dq_pointer();
   int Nintco = Ncoord();
   int rfo_root; // ultimately, should be array of roots to maximize
   int cnt_i;
+  double *rfo_u = init_array(Nintco); // unit vector in step direction
 
   oprintf_out("\tTaking PRFO optimization step.\n");
 
@@ -105,7 +107,7 @@ void MOLECULE::prfo_step(void) {
     double * rfo_old_evect = p_Opt_data->g_rfo_eigenvector_pointer();
     double max_overlap = 0;
     for (int i=0; i<Nintco; ++i) {
-      double tval = fabs (array_dot(H_diag[i], rfo_old_evect, Nintco));
+      double tval = std::fabs (array_dot(H_diag[i], rfo_old_evect, Nintco));
       if (tval > max_overlap) {
         max_overlap = tval;
         rfo_root = i;
@@ -118,7 +120,7 @@ void MOLECULE::prfo_step(void) {
 
   // transform gradient
   double *f_q_Hevect_basis = init_array(Nintco);
-  opt_matrix_mult(H_evects, 0, &fq, 1, &f_q_Hevect_basis, 1, Nintco, Nintco, 1, 0);
+  opt_matrix_mult(H_evects, false, &fq, true, &f_q_Hevect_basis, true, Nintco, Nintco, 1, false);
   if (Opt_params.print_lvl >= 2) {
     oprintf_out("\tInternal forces in au,\n");
     oprint_array_out(fq, Nintco);
@@ -190,8 +192,8 @@ void MOLECULE::prfo_step(void) {
   //Normalize all eigenvectors.
   for (int i=0; i<mu+1; ++i) {
     // how big is dividing going to make it?
-    double tval = abs( array_abs_max(rfo_max[i], mu) / rfo_max[i][mu] );
-    if (fabs(tval) < Opt_params.rfo_normalization_max) {
+    double tval = std::abs( array_abs_max(rfo_max[i], mu) / rfo_max[i][mu] );
+    if (std::fabs(tval) < Opt_params.rfo_normalization_max) {
       for (int j=0; j<mu+1; ++j)
         rfo_max[i][j] /= rfo_max[i][mu];
     }
@@ -203,8 +205,8 @@ void MOLECULE::prfo_step(void) {
 
   //rfo_min contains normalized eigenvectors as rows
   for (int i=0; i<Nintco-mu+1; ++i) {
-    double tval = abs( array_abs_max(rfo_min[i], Nintco-mu) / rfo_min[i][Nintco-mu] );
-    if (fabs(tval) < Opt_params.rfo_normalization_max) {
+    double tval = std::abs( array_abs_max(rfo_min[i], Nintco-mu) / rfo_min[i][Nintco-mu] );
+    if (std::fabs(tval) < Opt_params.rfo_normalization_max) {
       for (int j=0;j<Nintco-mu+1;++j)
         rfo_min[i][j] /= rfo_min[i][Nintco-mu];
     }
@@ -235,7 +237,7 @@ void MOLECULE::prfo_step(void) {
 
   // transform back into original basis.
   // write to old dq pointer ?
-  opt_matrix_mult(H_evects, 1, &rfo_step_Hevect_basis, 1, &dq, 1, Nintco, Nintco, 1, 0);
+  opt_matrix_mult(H_evects, true, &rfo_step_Hevect_basis, true, &dq, true, Nintco, Nintco, 1, false);
 
   if (Opt_params.print_lvl >= 2) {
     oprintf_out( "\nRFO step in original basis\n");
@@ -247,15 +249,23 @@ void MOLECULE::prfo_step(void) {
   // try to get but with a single extrapolated energy change
 
   double rfo_dqnorm = sqrt( array_dot(dq, dq, Nintco) );
-  double rfo_g = -1 * array_dot(fq, dq, Nintco);
+  array_copy(dq, rfo_u, Nintco);
+  array_normalize(rfo_u, Nintco);
 
-  oprintf_out("\tNorm of target step-size %10.5lf\n", rfo_dqnorm);
+  double rfo_g = -1 * array_dot(fq, rfo_u, Nintco);
+
+  //oprintf_out("\tNorm of target step-size %10.5lf\n", rfo_dqnorm);
 
   double rfo_h = 0;
   for (int i=0; i<Nintco; ++i)
-    rfo_h += dq[i] * array_dot(Horig[i], dq, Nintco);
+    rfo_h += rfo_u[i] * array_dot(Horig[i], rfo_u, Nintco);
 
   double DE_projected = DE_rfo_energy(rfo_dqnorm, rfo_g, rfo_h);
+
+  oprintf_out("\t|RFO target step|  :  %18.10f\n", rfo_dqnorm);
+  oprintf_out("\tRFO gradient       :  %18.10f\n", rfo_g);
+  oprintf_out("\tRFO hessian        :  %18.10f\n", rfo_h);
+  oprintf_out("\tProjected Delta(E) :  %18.10f\n", DE_projected);
 
 //calculating the projected energy change
 /*
@@ -316,8 +326,9 @@ double rfo_dqnorm_min;
   symmetrize_geom(); // now symmetrize the geometry for next step
 
   // save values in step data
-  p_Opt_data->save_step_info(DE_projected, dq, rfo_dqnorm, rfo_g, rfo_h);
+  p_Opt_data->save_step_info(DE_projected, rfo_u, rfo_dqnorm, rfo_g, rfo_h);
 
+  free_array(rfo_u);
 
   return;
 }

@@ -1,7 +1,5 @@
 #! 6-31G** H2O Test CISD Energy Point with subspace collapse
 
-memory 250 mb
-
 
 molecule h2o {
     O
@@ -11,6 +9,7 @@ molecule h2o {
 
 set {
   basis 6-31G**
+  qc_module detci
 }
 
 set detci {
@@ -18,7 +17,6 @@ set detci {
   r_convergence = 5
   max_num_vecs = 4
   collapse_size = 2
-  qc_module detci
 }
 
 thisenergy = energy('cisd')

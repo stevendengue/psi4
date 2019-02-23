@@ -3,23 +3,24 @@
 .. #
 .. # Psi4: an open-source quantum chemistry software package
 .. #
-.. # Copyright (c) 2007-2016 The Psi4 Developers.
+.. # Copyright (c) 2007-2019 The Psi4 Developers.
 .. #
 .. # The copyrights for code used from other parties are included in
 .. # the corresponding files.
 .. #
-.. # This program is free software; you can redistribute it and/or modify
-.. # it under the terms of the GNU General Public License as published by
-.. # the Free Software Foundation; either version 2 of the License, or
-.. # (at your option) any later version.
+.. # This file is part of Psi4.
 .. #
-.. # This program is distributed in the hope that it will be useful,
+.. # Psi4 is free software; you can redistribute it and/or modify
+.. # it under the terms of the GNU Lesser General Public License as published by
+.. # the Free Software Foundation, version 3.
+.. #
+.. # Psi4 is distributed in the hope that it will be useful,
 .. # but WITHOUT ANY WARRANTY; without even the implied warranty of
 .. # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-.. # GNU General Public License for more details.
+.. # GNU Lesser General Public License for more details.
 .. #
-.. # You should have received a copy of the GNU General Public License along
-.. # with this program; if not, write to the Free Software Foundation, Inc.,
+.. # You should have received a copy of the GNU Lesser General Public License along
+.. # with Psi4; if not, write to the Free Software Foundation, Inc.,
 .. # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 .. #
 .. # @END LICENSE
@@ -80,7 +81,7 @@ An example utilization of the code is::
    
    energy('mp2')
 
-The ``energy('mp2')`` call to :py:func:`~driver.energy` executes 
+The ``energy('mp2')`` call to :py:func:`~psi4.energy` executes
 the predefined DF-MP2 procedure, first calling
 the SCF module with a default RHF reference and DF algorithm for the
 two-electron integrals. When the orbitals are converged, the DF-MP2 module is
@@ -194,9 +195,11 @@ documented in the Appendix :ref:`apdx:dfmp2`). Some basic recommendations are in
 
 * DFMP2 should be run with the :math:`ov`-type RI or MP2FIT auxiliary
   basis sets, *not* the -JKFIT basis sets. The automatic basis selector
-  should work fine for all of the Dunning and Pople bases (provided the auxiliary
-  basis exists for the atom in question). If it does not, use the
-  |dfmp2__df_basis_mp2| keyword to manually specify the basis.
+  should work fine for most all bases (exceptions are less common elements
+  at higher than quadruple-zeta). Generally, it is always better to specify
+  only the orbital basis set and let the auxiliary bases be chosen
+  automatically. If you want to specify manually, use the
+  |dfmp2__df_basis_mp2| keyword.
 
 * DFMP2 likes memory. At a minimum, :math:`2Q^2` doubles are required,
   where :math:`Q` is the size of the auxiliary basis set. However, there is

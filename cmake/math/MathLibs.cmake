@@ -11,7 +11,6 @@
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # -----------------------------------------------------------------------------
 
-
 #-------------------------------------------------------------------------------
 # SYSTEM_NATIVE
 
@@ -73,13 +72,28 @@ set(ATLAS_BLAS_LIBS   f77blas cblas atlas)
 set(ATLAS_LAPACK_LIBS atlas lapack)
 
 #-------------------------------------------------------------------------------
+# OPENBLAS
+
+set(OPENBLAS_BLAS_INCLUDE_PATH_SUFFIXES)
+set(OPENBLAS_LAPACK_INCLUDE_PATH_SUFFIXES)
+
+set(OPENBLAS_BLAS_HEADERS cblas.h openblas_config.h f77blas.h)
+set(OPENBLAS_LAPACK_HEADERS lapacke.h lapacke_config.h lapacke_mangling.h lapacke_utils.h)
+
+set(OPENBLAS_BLAS_LIBRARY_PATH_SUFFIXES openblas)
+set(OPENBLAS_LAPACK_LIBRARY_PATH_SUFFIXES openblas)
+
+set(OPENBLAS_BLAS_LIBS  openblas)
+set(OPENBLAS_LAPACK_LIBS openblas)
+
+#-------------------------------------------------------------------------------
 # MKL
 
 set(MKL_BLAS_INCLUDE_PATH_SUFFIXES)
 set(MKL_LAPACK_INCLUDE_PATH_SUFFIXES)
 
-set(MKL_BLAS_HEADERS   mkl_cblas.h)
-set(MKL_LAPACK_HEADERS mkl_lapack.h)
+set(MKL_BLAS_HEADERS   mkl.h) #mkl_cblas.h)
+set(MKL_LAPACK_HEADERS mkl.h) #mkl_lapack.h)
 
 if(${CMAKE_HOST_SYSTEM_PROCESSOR} STREQUAL "x86_64")
     set(MKL_BLAS_LIBRARY_PATH_SUFFIXES   intel64 em64t)
@@ -90,7 +104,7 @@ else()
 endif()
 
 set(_thread_lib)
-if(ENABLE_THREADED_MKL)
+if(ENABLE_OPENMP)
     if(MKL_COMPILER_BINDINGS MATCHES Intel)
         set(_thread_lib mkl_intel_thread)
     endif()
@@ -98,10 +112,10 @@ if(ENABLE_THREADED_MKL)
         set(_thread_lib mkl_pgi_thread)
     endif()
     if(MKL_COMPILER_BINDINGS MATCHES GNU)
-        set(_thread_lib mkl_gnu_thread)
+        set(_thread_lib mkl_intel_thread)
     endif()
     if(MKL_COMPILER_BINDINGS MATCHES Clang)
-        set(_thread_lib mkl_gnu_thread)
+        set(_thread_lib mkl_intel_thread)
     endif()
 else()
     set(_thread_lib mkl_sequential)
@@ -145,22 +159,54 @@ else()
     set(_blacs_lib)
 endif()
 
+if(ENABLE_GENERIC_MATH AND (UNIX AND NOT APPLE))
+    set(_start_group "-Wl,--start-group")
+    set(_end_group "-Wl,--end-group")
+else()
+    set(_start_group)
+    set(_end_group)
+endif()
+
+# LAB Jul 2017: Because gcc thinks that if OpenMP is on, then implicitly one _must_ want their
+#   libgomp, when we'd actually prefer libiomp5 that doesn't give nthread-dependent energies.
+#   MKL advisor says: Mac: iomp5 for icpc, clang, gcc; Linux: iomp5 for icpc, gomp or iomp5 for gcc
+#   We suppress gomp across the board for Mac/gcc, Linux/gcc, Linux/icpc (uses gcc under the hood
+#   and we want gcc-based plugins to inherit iomp5 properly).
+# LAB May 2018: We were using "-fno-openmp" to suppress gomp just on the link line. Now let's
+#   do so by sealing off any unresolved symbol from iomp5, then adding --as-needed to suppress
+#   gomp linking.
+#if(ENABLE_OPENMP AND ((MKL_COMPILER_BINDINGS MATCHES GNU) OR
+#                      ((UNIX AND NOT APPLE) AND (MKL_COMPILER_BINDINGS MATCHES Intel))))
+#    set(_extras "-Wl,--as-needed")
+
+if(NOT ENABLE_GENERIC_MATH)
+    # prefer mkl_rt.so as covers most situations
+    set(MKL_BLAS_LIBS mkl_rt)
+    #set(MKL_BLAS_LIBS mkl_rt ${_mkl_omp} ${_extras} pthread m dl)
+    #set(MKL_BLAS_LIBS mkl_rt pthread m dl)
+endif()
 # miro: for MKL 10.0.1.014
-set(MKL_BLAS_LIBS ${_scalapack_lib} ${_compiler_mkl_interface}${_lib_suffix} ${_thread_lib} mkl_core mkl_def mkl_mc ${_blacs_lib} guide pthread m)
+set(MKL_BLAS_LIBS2 ${_scalapack_lib} ${_start_group} ${_compiler_mkl_interface}${_lib_suffix} ${_thread_lib} mkl_core mkl_def mkl_mc ${_blacs_lib}  ${_end_group} guide       pthread m dl)
 #  try this MKL BLAS combination with SGI MPT
-set(MKL_BLAS_LIBS2 ${_scalapack_lib} ${_compiler_mkl_interface}${_lib_suffix} ${_thread_lib} mkl_core ${_blacs_lib}   guide pthread m)
+set(MKL_BLAS_LIBS3 ${_scalapack_lib} ${_start_group} ${_compiler_mkl_interface}${_lib_suffix} ${_thread_lib} mkl_core                ${_blacs_lib}  ${_end_group} guide       pthread m dl)
 # newer MKL BLAS versions do not have libguide
-set(MKL_BLAS_LIBS3 ${_scalapack_lib} ${_compiler_mkl_interface}${_lib_suffix} ${_thread_lib} mkl_core ${_blacs_lib}         pthread m)
+set(MKL_BLAS_LIBS4 ${_scalapack_lib} ${_start_group} ${_compiler_mkl_interface}${_lib_suffix} ${_thread_lib} mkl_core                ${_blacs_lib}  ${_end_group} ${_mkl_omp} pthread m dl)
 # ancient MKL BLAS
-set(MKL_BLAS_LIBS4 mkl guide m)
+set(MKL_BLAS_LIBS5 mkl guide m dl)
 
-set(MKL_LAPACK_LIBS mkl_lapack95${_lib_suffix} ${_compiler_mkl_interface}${_lib_suffix})
-
+if(NOT ENABLE_GENERIC_MATH)
+    # prefer mkl_rt.so as covers most situations
+    set(MKL_LAPACK_LIBS mkl_rt)
+endif()
+# modern MKL LAPACK
+set(MKL_LAPACK_LIBS2 mkl_lapack95${_lib_suffix} ${_compiler_mkl_interface}${_lib_suffix})
 # older MKL LAPACK
-set(MKL_LAPACK_LIBS2 mkl_lapack)
+set(MKL_LAPACK_LIBS3 mkl_lapack)
 
 unset(_lib_suffix)
 unset(_thread_lib)
 unset(_compiler_mkl_interface)
 unset(_scalapack_lib)
 unset(_blacs_lib)
+unset(_start_group)
+unset(_end_group)

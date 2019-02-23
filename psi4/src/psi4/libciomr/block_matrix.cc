@@ -3,23 +3,24 @@
  *
  * Psi4: an open-source quantum chemistry software package
  *
- * Copyright (c) 2007-2016 The Psi4 Developers.
+ * Copyright (c) 2007-2019 The Psi4 Developers.
  *
  * The copyrights for code used from other parties are included in
  * the corresponding files.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * This file is part of Psi4.
  *
- * This program is distributed in the hope that it will be useful,
+ * Psi4 is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * Psi4 is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with Psi4; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * @END LICENSE
@@ -34,9 +35,9 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <strings.h>
 #include "psi4/psifiles.h"
-#include <unistd.h>
+#include "psi4/libpsi4util/PsiOutStream.h"
+#include "psi4/libpsi4util/process.h"
 #ifdef _POSIX_MEMLOCK
 #include <sys/mman.h>
 #endif
@@ -57,8 +58,8 @@ namespace psi {
 ** Allocates memory for an n x m matrix and returns a pointer to the
 ** first row.
 **
-** \param n = number of rows (unsigned long to allow large matrices)
-** \param m = number of columns (unsigned long to allow large matrices)
+** \param n = number of rows (size_t to allow large matrices)
+** \param m = number of columns (size_t to allow large matrices)
 ** \param memlock = optional bool indicating whether to lock memory
 **   into physical RAM or not, and available only where _POSIX_MEMLOCK
 **   is defined. Defaults to false if not specified.
@@ -72,61 +73,59 @@ namespace psi {
 ** \ingroup CIOMR
 */
 
-double ** block_matrix(unsigned long int n, unsigned long int m, bool memlock)
-{
-    double **A=NULL;
-    double *B=NULL;
-    unsigned long int i;
+PSI_API double **block_matrix(size_t n, size_t m, bool memlock) {
+    double **A = nullptr;
+    double *B = nullptr;
+    size_t i;
 
-    if(!m || !n) return(static_cast<double **>(0));
+    if (!m || !n) return (static_cast<double **>(nullptr));
 
-    A = new double*[n];
-    if (A==NULL) {
+    A = new double *[n];
+    if (A == nullptr) {
         outfile->Printf("block_matrix: trouble allocating memory \n");
-        outfile->Printf("n = %ld\n",n);
+        outfile->Printf("n = %ld\n", n);
         exit(PSI_RETURN_FAILURE);
     }
 
-    B = new double[n*m];
-    if (B == NULL) {
+    B = new double[n * m];
+    if (B == nullptr) {
         outfile->Printf("block_matrix: trouble allocating memory \n");
-        outfile->Printf("m = %ld\n",m);
+        outfile->Printf("m = %ld\n", m);
         exit(PSI_RETURN_FAILURE);
     }
-    memset(static_cast<void*>(B), 0, m*n*sizeof(double));
+    memset(static_cast<void *>(B), 0, m * n * sizeof(double));
 
     for (i = 0; i < n; i++) {
-        A[i] = &(B[i*m]);
+        A[i] = &(B[i * m]);
     }
 
 #ifdef _POSIX_MEMLOCK
     if (memlock) {
-
-        char* addr = (char*) B;
-        unsigned long size = m*n*(unsigned long)sizeof(double);
-        unsigned long page_offset, page_size;
+        char *addr = (char *)B;
+        size_t size = m * n * (size_t)sizeof(double);
+        size_t page_offset, page_size;
 
         page_size = sysconf(_SC_PAGESIZE);
-        page_offset = (unsigned long) addr % page_size;
+        page_offset = (size_t)addr % page_size;
 
-        addr -= page_offset;  /* Adjust addr to page boundary */
-        size += page_offset;  /* Adjust size with page_offset */
+        addr -= page_offset; /* Adjust addr to page boundary */
+        size += page_offset; /* Adjust size with page_offset */
 
-        if ( mlock(addr, size) ) {  /* Lock the memory */
+        if (mlock(addr, size)) { /* Lock the memory */
             outfile->Printf("block_matrix: trouble locking memory \n");
             fflush(stderr);
             exit(PSI_RETURN_FAILURE);
         }
 
-        addr = (char*) A;
-        size = n*(unsigned long)sizeof(double*);
+        addr = (char *)A;
+        size = n * (size_t)sizeof(double *);
 
-        page_offset = (unsigned long) addr % page_size;
+        page_offset = (size_t)addr % page_size;
 
-        addr -= page_offset;  /* Adjust addr to page boundary */
-        size += page_offset;  /* Adjust size with page_offset */
+        addr -= page_offset; /* Adjust addr to page boundary */
+        size += page_offset; /* Adjust size with page_offset */
 
-        if ( mlock(addr, size) ) {  /* Lock the memory */
+        if (mlock(addr, size)) { /* Lock the memory */
             outfile->Printf("block_matrix: trouble locking memory \n");
             fflush(stderr);
             exit(PSI_RETURN_FAILURE);
@@ -134,9 +133,8 @@ double ** block_matrix(unsigned long int n, unsigned long int m, bool memlock)
     }
 #endif
 
-    return(A);
+    return (A);
 }
-
 
 /*!
 ** free_block(): Free a block matrix
@@ -147,11 +145,9 @@ double ** block_matrix(unsigned long int n, unsigned long int m, bool memlock)
 **
 ** \ingroup CIOMR
 */
-void free_block(double **array)
-{
-    if(array == NULL) return;
-    delete [] array[0];
-    delete [] array;
+void PSI_API free_block(double **array) {
+    if (array == nullptr) return;
+    delete[] array[0];
+    delete[] array;
 }
-
 }

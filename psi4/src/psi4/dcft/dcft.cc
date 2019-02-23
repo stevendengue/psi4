@@ -3,30 +3,31 @@
  *
  * Psi4: an open-source quantum chemistry software package
  *
- * Copyright (c) 2007-2016 The Psi4 Developers.
+ * Copyright (c) 2007-2019 The Psi4 Developers.
  *
  * The copyrights for code used from other parties are included in
  * the corresponding files.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * This file is part of Psi4.
  *
- * This program is distributed in the hope that it will be useful,
+ * Psi4 is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * Psi4 is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with Psi4; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * @END LICENSE
  */
 
 #include "dcft.h"
-#include "defines.h"
+#include "psi4/psifiles.h"
 #include <vector>
 #include <cmath>
 #include "psi4/liboptions/liboptions.h"
@@ -37,13 +38,10 @@
 #include "psi4/libdiis/diismanager.h"
 #include "psi4/libiwl/iwl.hpp"
 
+namespace psi {
+namespace dcft {
 
-
-namespace psi{ namespace dcft{
-
-DCFTSolver::DCFTSolver(SharedWavefunction ref_wfn, Options &options):
-        Wavefunction(options)
-{
+DCFTSolver::DCFTSolver(SharedWavefunction ref_wfn, Options &options) : Wavefunction(options) {
     reference_wavefunction_ = ref_wfn;
     shallow_copy(ref_wfn);
     Ca_ = ref_wfn->Ca()->clone();
@@ -53,16 +51,16 @@ DCFTSolver::DCFTSolver(SharedWavefunction ref_wfn, Options &options):
     Fa_ = ref_wfn->Fa()->clone();
     Fb_ = ref_wfn->Fb()->clone();
 
-    maxiter_            = options.get_int("MAXITER");
-    print_              = options.get_int("PRINT");
-    maxdiis_            = options.get_int("DIIS_MAX_VECS");
-    mindiisvecs_        = options.get_int("DIIS_MIN_VECS");
-    regularizer_        = options.get_double("TIKHONOW_OMEGA");
-    orbital_level_shift_= options.get_double("ORBITAL_LEVEL_SHIFT");
-    diis_start_thresh_  = options.get_double("DIIS_START_CONVERGENCE");
+    maxiter_ = options.get_int("MAXITER");
+    print_ = options.get_int("PRINT");
+    maxdiis_ = options.get_int("DIIS_MAX_VECS");
+    mindiisvecs_ = options.get_int("DIIS_MIN_VECS");
+    regularizer_ = options.get_double("TIKHONOW_OMEGA");
+    orbital_level_shift_ = options.get_double("ORBITAL_LEVEL_SHIFT");
+    diis_start_thresh_ = options.get_double("DIIS_START_CONVERGENCE");
     orbitals_threshold_ = options.get_double("R_CONVERGENCE");
     cumulant_threshold_ = options.get_double("R_CONVERGENCE");
-    int_tolerance_      = options.get_double("INTS_TOLERANCE");
+    int_tolerance_ = options.get_double("INTS_TOLERANCE");
     energy_level_shift_ = options.get_double("ENERGY_LEVEL_SHIFT");
 
     if (!options_["E_CONVERGENCE"].has_changed())
@@ -73,14 +71,22 @@ DCFTSolver::DCFTSolver(SharedWavefunction ref_wfn, Options &options):
     psio_->open(PSIF_DCFT_DPD, PSIO_OPEN_OLD);
 
     exact_tau_ = false;
-    if (options.get_str("DCFT_FUNCTIONAL") == "DC-12"
-            || options.get_str("DCFT_FUNCTIONAL") == "ODC-12"
-            || options.get_str("DCFT_FUNCTIONAL") == "ODC-13") exact_tau_ = true;
+    if (options.get_str("DCFT_FUNCTIONAL") == "DC-12" || options.get_str("DCFT_FUNCTIONAL") == "ODC-12" ||
+        options.get_str("DCFT_FUNCTIONAL") == "ODC-13")
+        exact_tau_ = true;
 
     orbital_optimized_ = false;
-    if (options.get_str("DCFT_FUNCTIONAL") == "ODC-06"
-            || options.get_str("DCFT_FUNCTIONAL") == "ODC-12"
-            || options.get_str("DCFT_FUNCTIONAL") == "ODC-13") orbital_optimized_ = true;
+    if (options.get_str("DCFT_FUNCTIONAL") == "ODC-06" || options.get_str("DCFT_FUNCTIONAL") == "ODC-12" ||
+        options.get_str("DCFT_FUNCTIONAL") == "ODC-13")
+        orbital_optimized_ = true;
+
+    if (ref_wfn->same_a_b_dens())
+        name_ = "R" + options.get_str("DCFT_FUNCTIONAL");
+    else {
+        // ROHF references may have the same orbitals, if not semicanonicalized
+        same_a_b_orbs_ = false;
+        name_ = "U" + options.get_str("DCFT_FUNCTIONAL");
+    }
 
     // Sets up the memory, and orbital info
     init();
@@ -89,17 +95,16 @@ DCFTSolver::DCFTSolver(SharedWavefunction ref_wfn, Options &options):
 /**
  * Computes A = A + alpha * B, writing the result back to A
  */
-void DCFTSolver::dpd_buf4_add(dpdbuf4 *A, dpdbuf4 *B, double alpha)
-{
-    for(int h = 0; h < nirrep_; ++h){
+void DCFTSolver::dpd_buf4_add(dpdbuf4 *A, dpdbuf4 *B, double alpha) {
+    for (int h = 0; h < nirrep_; ++h) {
         global_dpd_->buf4_mat_irrep_init(A, h);
         global_dpd_->buf4_mat_irrep_init(B, h);
         global_dpd_->buf4_mat_irrep_rd(A, h);
         global_dpd_->buf4_mat_irrep_rd(B, h);
 
-        #pragma omp parallel for
-        for(int row = 0; row < A->params->rowtot[h]; ++row){
-            for(int col = 0; col < A->params->coltot[h]; ++col){
+#pragma omp parallel for
+        for (int row = 0; row < A->params->rowtot[h]; ++row) {
+            for (int col = 0; col < A->params->coltot[h]; ++col) {
                 A->matrix[h][row][col] += alpha * B->matrix[h][row][col];
             }
         }
@@ -109,8 +114,7 @@ void DCFTSolver::dpd_buf4_add(dpdbuf4 *A, dpdbuf4 *B, double alpha)
     }
 }
 
-DCFTSolver::~DCFTSolver()
-{
-}
+DCFTSolver::~DCFTSolver() {}
 
-}} // Namespaces
+}  // namespace dcft
+}  // namespace psi
